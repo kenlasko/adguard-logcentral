@@ -1,0 +1,43 @@
+{{define "stats_panels"}}
+{{with .Stats}}
+{{if .Errors}}
+<div class="banner warn">Partial results: could not reach
+  {{range $i, $e := .Errors}}{{if $i}}, {{end}}{{$e.Instance}}{{end}}.</div>
+{{end}}
+
+<div class="tiles">
+  <div class="tile"><div class="tile-value">{{comma .NumDNSQueries}}</div><div class="tile-label">DNS queries</div></div>
+  <div class="tile"><div class="tile-value">{{comma .NumBlockedFiltering}}</div><div class="tile-label">Blocked</div></div>
+  <div class="tile"><div class="tile-value">{{percent1 .BlockedPercent}}</div><div class="tile-label">Blocked share</div></div>
+  <div class="tile"><div class="tile-value">{{ms3 .AvgProcessingTime}}</div><div class="tile-label">Avg processing</div></div>
+</div>
+
+<div class="top-grid">
+  {{template "top_table" dict "Title" "Top blocked domains" "Rows" .TopBlockedDomains}}
+  {{template "top_table" dict "Title" "Top clients" "Rows" .TopClients}}
+  {{template "top_table" dict "Title" "Top queried domains" "Rows" .TopQueriedDomains}}
+</div>
+{{end}}
+{{end}}
+
+{{define "top_table"}}
+<div class="top-table">
+  <h2>{{.Title}}</h2>
+  <table>
+    <thead><tr><th>Name</th><th>Count</th><th>By instance</th></tr></thead>
+    <tbody>
+      {{range .Rows}}
+      <tr>
+        <td class="domain">{{.Name}}</td>
+        <td class="num">{{comma .Count}}</td>
+        <td class="breakdown">
+          {{range $i, $p := .PerInstance}}{{if $i}} &middot; {{end}}<span class="badge">{{$p.Instance}}</span> {{comma $p.Count}}{{end}}
+        </td>
+      </tr>
+      {{else}}
+      <tr><td colspan="3"><div class="empty">No data.</div></td></tr>
+      {{end}}
+    </tbody>
+  </table>
+</div>
+{{end}}

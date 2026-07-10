@@ -4,7 +4,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -12,12 +11,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/kenlasko/adguard-log-aggregator/internal/aggregate"
+	"github.com/kenlasko/adguard-log-aggregator/internal/auth"
 	"github.com/kenlasko/adguard-log-aggregator/internal/config"
+	"github.com/kenlasko/adguard-log-aggregator/internal/web"
 )
 
 func main() {
-	// Load configuration first, using a plain logger, so config errors are
-	// reported before LOG_LEVEL is even known.
 	cfg, err := config.FromEnv()
 	if err != nil {
 		bootstrap := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
@@ -36,27 +36,35 @@ func main() {
 	}
 }
 
-// run wires up the HTTP server and blocks until a shutdown signal is received.
+// run wires dependencies and blocks until a shutdown signal is received.
 func run(cfg config.Config, logger *slog.Logger) error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", healthz)
-
-	srv := &http.Server{
-		Addr:              cfg.ListenAddr,
-		Handler:           mux,
-		ReadTimeout:       15 * time.Second,
-		ReadHeaderTimeout: 5 * time.Second,
-		WriteTimeout:      30 * time.Second,
-		IdleTimeout:       60 * time.Second,
+	codec, err := auth.NewCodec(cfg.SessionSecret, cfg.CookieSecure)
+	if err != nil {
+		return err
 	}
 
+	// OIDC discovery is a network call; give it a bounded startup budget.
+	discoveryCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+	authn, err := auth.NewAuthenticator(discoveryCtx, cfg, codec, logger)
+	if err != nil {
+		return err
+	}
+
+	clients := aggregate.NewClients(cfg.Instances, cfg.AdGuardTimeout)
+	srv, err := web.NewServer(cfg, clients, authn, auth.NewMiddleware(codec), logger)
+	if err != nil {
+		return err
+	}
+
+	httpServer := srv.HTTPServer()
 	serverErr := make(chan error, 1)
 	go func() {
-		logger.Info("server listening", "addr", srv.Addr, "instances", len(cfg.Instances))
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.Info("server listening", "addr", httpServer.Addr, "instances", len(cfg.Instances))
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 			return
 		}
@@ -70,9 +78,9 @@ func run(cfg config.Config, logger *slog.Logger) error {
 		logger.Info("shutdown signal received, draining connections")
 	}
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := srv.Shutdown(shutdownCtx); err != nil {
+	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelShutdown()
+	if err := httpServer.Shutdown(shutdownCtx); err != nil {
 		return err
 	}
 	logger.Info("server stopped cleanly")
@@ -90,11 +98,4 @@ func unwrapJoined(err error) []string {
 		return parts
 	}
 	return []string{err.Error()}
-}
-
-// healthz is an unauthenticated liveness probe that performs no upstream calls.
-func healthz(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, _ = fmt.Fprint(w, `{"status":"ok"}`)
 }

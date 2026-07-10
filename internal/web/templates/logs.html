@@ -1,0 +1,46 @@
+{{define "title"}}Logs - AdGuard Log Aggregator{{end}}
+
+{{define "content"}}
+<form id="filters" class="filters"
+      hx-get="/partials/logs"
+      hx-target="#log-body"
+      hx-swap="innerHTML"
+      hx-trigger="submit, change, keyup delay:300ms from:find input[name=search]">
+  <input type="search" name="search" value="{{.Search}}" placeholder="Search domain or client" autocomplete="off">
+
+  <select name="status" aria-label="Response status">
+    <option value="" {{if eq .Status ""}}selected{{end}}>All responses</option>
+    <option value="blocked" {{if eq .Status "blocked"}}selected{{end}}>Blocked</option>
+    <option value="rewritten" {{if eq .Status "rewritten"}}selected{{end}}>Rewritten</option>
+    <option value="processed" {{if eq .Status "processed"}}selected{{end}}>Allowed</option>
+  </select>
+
+  <span class="instances">
+    {{range .Instances}}
+    <label class="chk"><input type="checkbox" name="instance" value="{{.Name}}" {{if .Checked}}checked{{end}}> {{.Name}}</label>
+    {{end}}
+  </span>
+
+  <label class="chk auto"><input type="checkbox" id="auto" name="auto" value="on" {{if .AutoRefresh}}checked{{end}}> Auto-refresh</label>
+</form>
+
+<table class="logs">
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>Instance</th>
+      <th>Client</th>
+      <th>Domain</th>
+      <th>Type</th>
+      <th>Result</th>
+      <th>Elapsed</th>
+    </tr>
+  </thead>
+  <tbody id="log-body"
+         hx-get="/partials/logs"
+         hx-include="#filters"
+         hx-trigger="every 10s [document.getElementById('auto').checked]">
+    {{template "logs_rows" .}}
+  </tbody>
+</table>
+{{end}}

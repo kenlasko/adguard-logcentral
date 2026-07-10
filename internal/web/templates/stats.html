@@ -1,0 +1,8 @@
+{{define "title"}}Stats - AdGuard Log Aggregator{{end}}
+
+{{define "content"}}
+<h1 class="page-title">Aggregate statistics</h1>
+<div id="stats-panels" hx-get="/partials/stats" hx-trigger="every 60s">
+  {{template "stats_panels" .}}
+</div>
+{{end}}

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{block "title" .}}AdGuard Log Aggregator{{end}}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/htmx.min.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="/">AdGuard Logs</a>
+      <a href="/">Logs</a>
+      <a href="/stats">Stats</a>
+    </nav>
+    <div class="session">
+      {{with .Session}}<span class="user" title="{{.Sub}}">{{if .Name}}{{.Name}}{{else}}{{.Email}}{{end}}</span>{{end}}
+      <a href="/auth/logout">Log out</a>
+    </div>
+  </header>
+
+  <div id="health-bar" class="health-bar" hx-get="/partials/health" hx-trigger="load, every 15s">
+    <span class="muted">Loading instance health...</span>
+  </div>
+
+  <main class="content">
+    {{block "content" .}}{{end}}
+  </main>
+</body>
+</html>

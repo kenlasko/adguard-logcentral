@@ -1,0 +1,15 @@
+{{define "health_bar"}}
+{{range .Instances}}
+<span class="pill {{if .Reachable}}up{{else}}down{{end}}" title="{{if .Err}}{{.Err}}{{else}}{{.Version}}{{end}}">
+  <span class="dot"></span>
+  <span class="pill-name">{{.Name}}</span>
+  {{if .Reachable}}
+    <span class="pill-meta">{{.Version}}{{if not .ProtectionEnabled}} - protection off{{end}}</span>
+  {{else}}
+    <span class="pill-meta">unreachable</span>
+  {{end}}
+</span>
+{{else}}
+<span class="muted">No instances configured.</span>
+{{end}}
+{{end}}
