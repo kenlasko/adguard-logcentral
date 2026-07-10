@@ -56,6 +56,20 @@ Configuration is validated at startup and **all** problems are reported at once
 (missing credentials, index gaps, duplicate names, short session secret, and so
 on), so you fix them in a single pass.
 
+## Container images
+
+Multi-architecture images (`linux/amd64` and `linux/arm64`) are published to the
+GitHub Container Registry on every push to `main` and every `v*` tag:
+
+```
+ghcr.io/kenlasko/adguard-log-aggregator:latest      # main branch
+ghcr.io/kenlasko/adguard-log-aggregator:1.2.3       # release tags
+ghcr.io/kenlasko/adguard-log-aggregator:sha-abc1234 # exact commit
+```
+
+Each image ships with a signed SBOM and build provenance attestation, and is
+scanned with Trivy before publication.
+
 ## Running
 
 ### docker run
@@ -184,6 +198,23 @@ set `COOKIE_SECURE=false` and `SESSION_SECRET=$(openssl rand -hex 32)`, then
 `go run ./cmd/server`.
 
 Run the test suite with `go test ./...`.
+
+## Continuous integration
+
+GitHub Actions runs on every pull request and push to `main`:
+
+- **CI** (`.github/workflows/ci.yml`): `gofmt` and `go vet`, `go mod tidy`/
+  `verify` checks, `golangci-lint` (which bundles staticcheck, errcheck, revive,
+  gocritic, and more), the full test suite under the race detector with a
+  coverage report, `govulncheck` for known-vulnerable dependencies, and `gosec`
+  for static security analysis (results uploaded to GitHub code scanning).
+- **CodeQL** (`.github/workflows/codeql.yml`): GitHub's security-and-quality
+  analysis for Go, also on a weekly schedule.
+- **Docker** (`.github/workflows/docker.yml`): builds and publishes the
+  multi-arch image described above, with SBOM, provenance, and a Trivy scan.
+
+Dependencies, GitHub Actions, and the Docker base image are kept current by
+Dependabot (`.github/dependabot.yml`).
 
 ## Pagination note
 

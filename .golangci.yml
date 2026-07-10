@@ -1,0 +1,53 @@
+# golangci-lint v2 configuration.
+# Security scanning (gosec) and vulnerability scanning (govulncheck) run as
+# their own dedicated CI steps; this file drives code-quality linting.
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  # Start from the default set (errcheck, govet, ineffassign, staticcheck,
+  # unused) and add high-signal linters.
+  default: standard
+  enable:
+    - bodyclose      # HTTP response bodies must be closed
+    - errorlint      # correct errors.Is/As and %w usage
+    - copyloopvar    # loop variable capture correctness
+    - misspell       # spelling in comments and strings
+    - unconvert      # redundant type conversions
+    - unparam        # unused function parameters
+    - revive         # broad style/correctness linter (golint successor)
+    - gocritic       # opinionated diagnostics
+    - prealloc       # slices that could be preallocated
+    - nilerr         # returning nil after a non-nil error check
+    - noctx          # HTTP requests should carry a context
+    - whitespace     # leading/trailing whitespace issues
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: false
+    gocritic:
+      disabled-checks:
+        - ifElseChain # the reason/status switches read fine as-is
+  exclusions:
+    generated: lax
+    rules:
+      # Test fixtures deliberately exercise unusual paths; relax a few linters.
+      - path: (adguardtest|oidctest)/
+        linters:
+          - errcheck
+          - noctx
+      # Test files use http.Get and defer Body.Close without ceremony.
+      - path: _test\.go
+        linters:
+          - errcheck
+          - noctx
+          - prealloc
+          - bodyclose
+
+formatters:
+  enable:
+    - gofmt
+    - goimports

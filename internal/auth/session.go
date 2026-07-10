@@ -114,6 +114,8 @@ func (c *Codec) WriteSession(w http.ResponseWriter, s Session) error {
 	if err != nil {
 		return err
 	}
+	// #nosec G124 -- Secure is driven by COOKIE_SECURE (default true); it is only
+	// false for local HTTP development. HttpOnly and SameSite are always set.
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    token,
@@ -137,6 +139,8 @@ func (c *Codec) ReadSession(r *http.Request, now time.Time) (Session, error) {
 
 // ClearSession expires the session cookie on the client.
 func (c *Codec) ClearSession(w http.ResponseWriter) {
+	// #nosec G124 -- Secure is driven by COOKIE_SECURE (default true); it is only
+	// false for local HTTP development. HttpOnly and SameSite are always set.
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    "",

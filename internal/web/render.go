@@ -5,11 +5,6 @@ import (
 	"net/http"
 )
 
-// isHTMX reports whether a request came from htmx (fragment expected).
-func isHTMX(r *http.Request) bool {
-	return r.Header.Get("HX-Request") == "true"
-}
-
 // renderPage renders a full page (layout + content). Rendering goes through a
 // buffer so a template error yields a clean 500 rather than a half-written body.
 func (s *Server) renderPage(w http.ResponseWriter, page string, data any) {

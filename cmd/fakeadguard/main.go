@@ -28,8 +28,16 @@ func main() {
 	entries := adguardtest.Generate(*count, time.Now(), 250*time.Millisecond, seed)
 	fake := adguardtest.New(*name, *user, *pass, entries)
 
+	srv := &http.Server{
+		Addr:              *addr,
+		Handler:           fake.Handler(),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
 	log.Printf("fakeadguard %q listening on %s (%d entries, user=%s)", *name, *addr, *count, *user)
-	if err := http.ListenAndServe(*addr, fake.Handler()); err != nil {
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }

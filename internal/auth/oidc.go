@@ -192,6 +192,8 @@ func (a *Authenticator) writeFlowCookie(w http.ResponseWriter, flow flowState) e
 	if err != nil {
 		return err
 	}
+	// #nosec G124 -- Secure is driven by COOKIE_SECURE (default true); it is only
+	// false for local HTTP development. HttpOnly and SameSite are always set.
 	http.SetCookie(w, &http.Cookie{
 		Name:     flowCookieName,
 		Value:    sealed,
@@ -221,6 +223,8 @@ func (a *Authenticator) readFlowCookie(r *http.Request) (flowState, error) {
 }
 
 func (a *Authenticator) clearFlowCookie(w http.ResponseWriter) {
+	// #nosec G124 -- Secure is driven by COOKIE_SECURE (default true); it is only
+	// false for local HTTP development. HttpOnly and SameSite are always set.
 	http.SetCookie(w, &http.Cookie{
 		Name:     flowCookieName,
 		Value:    "",

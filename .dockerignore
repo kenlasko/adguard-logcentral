@@ -1,5 +1,7 @@
 .git
 .gitignore
+.github
+.golangci.yml
 docs
 README.md
 coverage.out

@@ -60,7 +60,7 @@ func (c *Client) get(ctx context.Context, path string, query url.Values, out any
 	if err != nil {
 		return fmt.Errorf("adguard %q: %s: %w", c.name, path, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		// Cap the error body so a misbehaving upstream cannot bloat logs.

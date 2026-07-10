@@ -121,6 +121,8 @@ func (i *Issuer) handleAuthorize(w http.ResponseWriter, r *http.Request) {
 	rq.Set("code", code)
 	rq.Set("state", state)
 	dest.RawQuery = rq.Encode()
+	// #nosec G710 -- this is a fake OIDC issuer used only in tests; redirecting to
+	// the supplied client redirect_uri is exactly what an authorize endpoint does.
 	http.Redirect(w, r, dest.String(), http.StatusFound)
 }
 

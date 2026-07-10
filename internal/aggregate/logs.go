@@ -52,7 +52,7 @@ func FetchLogs(ctx context.Context, clients []*adguard.Client, filter Filter, cu
 	}
 
 	// Partition clients into those we must query this page and those already done.
-	var active []*adguard.Client
+	active := make([]*adguard.Client, 0, len(clients))
 	for _, c := range clients {
 		if !filter.selected(c.Name()) {
 			continue
@@ -74,7 +74,7 @@ func FetchLogs(ctx context.Context, clients []*adguard.Client, filter Filter, cu
 
 	// Collect successful per-instance entries and record failures.
 	byInstance := map[string][]adguard.QueryLogItem{}
-	var groups []taggedEntries
+	groups := make([]taggedEntries, 0, len(results))
 	var errs []InstanceError
 	failed := map[string]bool{}
 	for _, r := range results {
