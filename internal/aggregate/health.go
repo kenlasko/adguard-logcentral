@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard"
 )
 
 // healthTimeout bounds the health probe so one slow instance cannot delay the

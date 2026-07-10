@@ -6,10 +6,16 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  # Callable as the release gate: the release workflow runs this exact suite
+  # before it builds and publishes, so the release gate never drifts from the
+  # checks that run on a push or PR.
+  workflow_call:
 
-# Cancel superseded runs on the same ref to save minutes.
+# Cancel superseded runs on the same ref to save minutes. The workflow name is
+# part of the group so a release run (which calls this workflow) does not cancel
+# an in-flight push/PR CI run on the same ref, or vice versa.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

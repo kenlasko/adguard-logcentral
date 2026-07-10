@@ -13,7 +13,7 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/config"
+	"github.com/kenlasko/adguard-logcentral/internal/config"
 )
 
 // flowCookieName holds the short-lived OIDC flow state (state, nonce, PKCE

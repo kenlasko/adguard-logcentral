@@ -4,7 +4,7 @@ import (
 	"context"
 	"sort"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard"
 )
 
 // InstanceCount is one instance's contribution to a merged top-N row.

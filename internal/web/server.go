@@ -4,14 +4,16 @@
 package web
 
 import (
+	"encoding/json"
 	"io/fs"
 	"log/slog"
 	"net/http"
 	"time"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
-	"github.com/kenlasko/adguard-log-aggregator/internal/auth"
-	"github.com/kenlasko/adguard-log-aggregator/internal/config"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard"
+	"github.com/kenlasko/adguard-logcentral/internal/auth"
+	"github.com/kenlasko/adguard-logcentral/internal/buildinfo"
+	"github.com/kenlasko/adguard-logcentral/internal/config"
 )
 
 // Server holds everything the HTTP handlers need. It is constructed once at
@@ -92,9 +94,17 @@ func cacheStatic(next http.Handler) http.Handler {
 	})
 }
 
+// healthzResponse is the JSON body of the liveness probe. It also reports the
+// build metadata so a running container can be curled to confirm which release
+// is deployed.
+type healthzResponse struct {
+	Status string         `json:"status"`
+	Build  buildinfo.Info `json:"build"`
+}
+
 // healthz is an unauthenticated liveness probe with no upstream fan-out.
 func healthz(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`{"status":"ok"}`))
+	_ = json.NewEncoder(w).Encode(healthzResponse{Status: "ok", Build: buildinfo.Get()})
 }

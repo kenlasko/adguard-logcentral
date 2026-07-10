@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard"
 )
 
 // instanceColorCount is the size of the instance color palette (the .inst-cN

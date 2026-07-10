@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard/adguardtest"
-	"github.com/kenlasko/adguard-log-aggregator/internal/config"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard/adguardtest"
+	"github.com/kenlasko/adguard-logcentral/internal/config"
 )
 
 func statsClient(t *testing.T, name string, payload adguardtest.StatsPayload) (*adguard.Client, func()) {

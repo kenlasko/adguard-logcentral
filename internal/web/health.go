@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/aggregate"
+	"github.com/kenlasko/adguard-logcentral/internal/aggregate"
 )
 
 // healthView is the data model for the health bar fragment.

@@ -1,4 +1,4 @@
-module github.com/kenlasko/adguard-log-aggregator
+module github.com/kenlasko/adguard-logcentral
 
 go 1.26.0
 

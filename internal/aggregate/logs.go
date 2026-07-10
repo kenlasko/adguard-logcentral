@@ -3,7 +3,7 @@ package aggregate
 import (
 	"context"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard"
 )
 
 // Filter is the set of user-selected query log filters. Instances is the list

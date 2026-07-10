@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard"
 )
 
 // Result is the outcome of one instance's fan-out call. Exactly one of Value's

@@ -11,10 +11,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/aggregate"
-	"github.com/kenlasko/adguard-log-aggregator/internal/auth"
-	"github.com/kenlasko/adguard-log-aggregator/internal/config"
-	"github.com/kenlasko/adguard-log-aggregator/internal/web"
+	"github.com/kenlasko/adguard-logcentral/internal/aggregate"
+	"github.com/kenlasko/adguard-logcentral/internal/auth"
+	"github.com/kenlasko/adguard-logcentral/internal/buildinfo"
+	"github.com/kenlasko/adguard-logcentral/internal/config"
+	"github.com/kenlasko/adguard-logcentral/internal/web"
 )
 
 func main() {
@@ -29,6 +30,10 @@ func main() {
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: cfg.LogLevel}))
 	slog.SetDefault(logger)
+
+	build := buildinfo.Get()
+	logger.Info("starting adguard log central",
+		"version", build.Version, "commit", build.Commit, "build_date", build.Date)
 
 	if err := run(cfg, logger); err != nil {
 		logger.Error("server exited with error", "error", err)
