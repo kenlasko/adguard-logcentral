@@ -3,10 +3,10 @@ name: Docker
 # Continuous image build for main and PRs: pushes a moving `latest` (plus a
 # branch and short-SHA tag) so the tip of main is always pullable, and builds
 # (without pushing) on PRs as a smoke test. Formal, versioned, cosign-signed
-# releases -- the `v<version>` tags -- are cut by the manual release workflow
-# (.github/workflows/release.yml), which owns the version bump and the tag, so
-# this workflow deliberately does NOT trigger on tags (that would double-build
-# the release and race the tag's digest against the signed one).
+# releases -- the `v<version>` tags -- are cut by a manual run of the CI workflow
+# (.github/workflows/ci.yml), which owns the version bump and the tag, so this
+# workflow deliberately does NOT trigger on tags (that would double-build the
+# release and race the tag's digest against the signed one).
 on:
   push:
     branches: [main]

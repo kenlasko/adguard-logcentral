@@ -88,13 +88,14 @@ curl -s http://localhost:8080/healthz
 
 ## Releasing
 
-Releases are cut manually by running the **Release** workflow against `main`
-(Actions -> Release -> Run workflow, or `gh workflow run Release --ref main`).
-It runs the full CI gate, then builds, signs, scans, and pushes the versioned
-image, and only then creates the `v<version>` git tag and GitHub Release. Pick a
-`patch`/`minor`/`major` bump or pass an explicit `version`, and optionally supply
-release notes. See [`docs/release-notes/README.md`](docs/release-notes/README.md)
-for the full process, version-input reference, and release-notes precedence.
+Releases are cut manually by running the **CI** workflow against `main`
+(Actions -> CI -> Run workflow, or `gh workflow run CI --ref main`) -- a manual
+run IS a release. It runs the full check suite as a gate, then builds, signs,
+scans, and pushes the versioned image, and only then creates the `v<version>`
+git tag and GitHub Release. Pick a `patch`/`minor`/`major` bump or pass an
+explicit `version`, and optionally supply release notes. See
+[`docs/release-notes/README.md`](docs/release-notes/README.md) for the full
+process, version-input reference, and release-notes precedence.
 
 ## Running
 
