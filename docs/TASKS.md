@@ -12,7 +12,7 @@ Refer to DESIGN.md for: the composite-cursor algorithm, the indexed env-var sche
 
 ## Phase 0 — Scaffold
 
-- [ ] **T0.1 Module + hygiene files.** `go mod init github.com/kenlasko/adguard-log-aggregator` (Go 1.24+). Add `.gitignore` (compiled binary, `coverage.out`, editor droppings) and `.dockerignore` (`.git`, docs, README).
+- [ ] **T0.1 Module + hygiene files.** `go mod init github.com/kenlasko/adguard-log-aggregator` (Go 1.26+). Add `.gitignore` (compiled binary, `coverage.out`, editor droppings) and `.dockerignore` (`.git`, docs, README).
 - [ ] **T0.2 Minimal server.** `cmd/server/main.go`: `log/slog` JSON logger, `http.Server` with Read/Write/Idle/ReadHeader timeouts, `GET /healthz` returning `200 {"status":"ok"}`, graceful shutdown via `signal.NotifyContext(SIGINT, SIGTERM)` with 10s grace.
 
 Exit criteria: `go build ./...` passes; `curl localhost:8080/healthz` returns 200; Ctrl+C shuts down cleanly.
@@ -88,7 +88,7 @@ Exit criteria: UI is readable in light and dark mode; no external network reques
 
 ## Phase 8 — Ops + docs
 
-- [ ] **T8.1 Dockerfile**: multi-stage — `golang:1.24` build (`CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" ./cmd/server`) into `gcr.io/distroless/static-debian12:nonroot`; `EXPOSE 8080`; `USER nonroot`.
+- [ ] **T8.1 Dockerfile**: multi-stage — `golang:1.26` build (`CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" ./cmd/server`) into `gcr.io/distroless/static-debian12:nonroot`; `EXPOSE 8080`; `USER nonroot`.
 - [ ] **T8.2 README rewrite**: what it does, screenshot placeholder, full env var table (copy from DESIGN.md), docker run + compose + k8s deployment snippets, Pocket-ID client setup notes (confidential client, redirect URI), the same-timestamp pagination limitation note.
 - [ ] **T8.3 Final gate**: `go vet ./...`, `go test ./...`, `docker build .` all pass; run the DESIGN.md end-to-end verification checklist (two fakeadguard instances + throwaway IdP) and confirm every browser check.
 

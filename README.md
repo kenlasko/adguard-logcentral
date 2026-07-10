@@ -167,6 +167,9 @@ a valid session.
 
 ## Local development
 
+Requires **Go 1.26+** (the module pins toolchain `go1.26.5`; older installs
+fetch it automatically). Building the container needs Docker only.
+
 Two fake AdGuard instances are included for end-to-end testing without touching
 real DNS servers:
 
