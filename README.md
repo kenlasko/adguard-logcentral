@@ -63,16 +63,38 @@ on), so you fix them in a single pass.
 ## Container images
 
 Multi-architecture images (`linux/amd64` and `linux/arm64`) are published to the
-GitHub Container Registry on every push to `main` and every `v*` tag:
+GitHub Container Registry:
 
 ```
-ghcr.io/kenlasko/adguard-log-aggregator:latest      # main branch
-ghcr.io/kenlasko/adguard-log-aggregator:1.2.3       # release tags
-ghcr.io/kenlasko/adguard-log-aggregator:sha-abc1234 # exact commit
+ghcr.io/kenlasko/adguard-log-aggregator:latest      # newest release, and tip of main between releases
+ghcr.io/kenlasko/adguard-log-aggregator:1.2.3       # a specific release
+ghcr.io/kenlasko/adguard-log-aggregator:1.2         # latest patch of the 1.2 line
+ghcr.io/kenlasko/adguard-log-aggregator:sha-abc1234 # exact commit on main
 ```
 
-Each image ships with a signed SBOM and build provenance attestation, and is
-scanned with Trivy before publication.
+Every push to `main` moves `latest` (plus a branch and short-SHA tag) so the tip
+of `main` is always pullable. Versioned `1.2.3` / `1.2` tags come from a formal
+release (see [Releasing](#releasing)). Each image ships with a signed SBOM and
+build provenance attestation, and is scanned with Trivy before publication;
+release images are additionally signed with cosign.
+
+The running version is reported at startup and on the unauthenticated
+`/healthz` endpoint:
+
+```sh
+curl -s http://localhost:8080/healthz
+# {"status":"ok","build":{"version":"1.2.3","commit":"abc1234","date":"2026-07-10T12:00:00Z"}}
+```
+
+## Releasing
+
+Releases are cut manually by running the **Release** workflow against `main`
+(Actions -> Release -> Run workflow, or `gh workflow run Release --ref main`).
+It runs the full CI gate, then builds, signs, scans, and pushes the versioned
+image, and only then creates the `v<version>` git tag and GitHub Release. Pick a
+`patch`/`minor`/`major` bump or pass an explicit `version`, and optionally supply
+release notes. See [`docs/release-notes/README.md`](docs/release-notes/README.md)
+for the full process, version-input reference, and release-notes precedence.
 
 ## Running
 
