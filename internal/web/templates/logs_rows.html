@@ -1,0 +1,42 @@
+{{define "logs_rows"}}
+{{if .Page.Errors}}
+<tr class="banner-row"><td colspan="7">
+  <div class="banner warn">Partial results: could not reach
+    {{range $i, $e := .Page.Errors}}{{if $i}}, {{end}}{{$e.Instance}}{{end}}. Showing data from the reachable instances.</div>
+</td></tr>
+{{end}}
+
+{{range .Page.Entries}}
+<tr class="{{rowClass .}}">
+  <td class="time">{{localTime .ParsedTime}}</td>
+  <td><span class="badge">{{.Instance}}</span></td>
+  <td>{{.Client}}{{with .ClientInfo}}{{if .Name}} <span class="muted">({{.Name}})</span>{{end}}{{end}}</td>
+  <td class="domain">{{.Question.Name}}</td>
+  <td>{{.Question.Type}}</td>
+  <td class="result {{reasonClass .Reason}}"
+      {{if .Rules}}title="{{range $i, $r := .Rules}}{{if $i}} | {{end}}{{$r.Text}}{{end}}"{{end}}>
+    {{reasonLabel .Reason}}
+  </td>
+  <td class="elapsed">{{formatMs .ElapsedMs}}</td>
+</tr>
+{{else}}
+{{if not .Page.Errors}}
+<tr class="empty-row"><td colspan="7"><div class="empty">No query log entries match the current filters.</div></td></tr>
+{{end}}
+{{end}}
+
+{{if .Page.HasMore}}
+<tr id="load-more" class="load-more-row">
+  <td colspan="7">
+    <button type="button" class="load-more"
+            hx-get="/partials/logs?cursor={{.Page.NextCursor}}"
+            hx-include="#filters"
+            hx-target="#load-more"
+            hx-swap="outerHTML">
+      Load more
+      <span class="htmx-indicator">...</span>
+    </button>
+  </td>
+</tr>
+{{end}}
+{{end}}

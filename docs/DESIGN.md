@@ -10,7 +10,7 @@ Hard requirements: Go; all config via env vars/secrets; no persistent storage (f
 
 ## Architecture summary
 
-Single static Go binary. Module `github.com/kenlasko/adguard-log-aggregator`, Go 1.24+, stdlib `net/http` ServeMux (Go 1.22+ pattern routing — no router dep).
+Single static Go binary. Module `github.com/kenlasko/adguard-log-aggregator`, Go 1.26+, stdlib `net/http` ServeMux (Go 1.22+ pattern routing — no router dep).
 
 **Dependencies (minimal)**: `github.com/coreos/go-oidc/v3` + `golang.org/x/oauth2` (OIDC code flow + PKCE). Everything else stdlib. htmx 2.x vendored as a static file.
 

@@ -1,0 +1,10 @@
+.git
+.gitignore
+.github
+.golangci.yml
+docs
+README.md
+coverage.out
+coverage.html
+Dockerfile
+.dockerignore
