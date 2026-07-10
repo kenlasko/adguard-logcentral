@@ -21,7 +21,7 @@ import (
 // middleware and forged session cookie rather than a live OIDC provider.
 func testServer(t *testing.T, instances []string, clients []*adguard.Client, pageSize int) (*Server, *auth.Codec) {
 	t.Helper()
-	tmpls, err := newTemplates()
+	tmpls, err := newTemplates(instances)
 	if err != nil {
 		t.Fatalf("newTemplates: %v", err)
 	}

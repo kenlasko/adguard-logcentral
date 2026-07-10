@@ -4,11 +4,16 @@ import (
 	"embed"
 	"fmt"
 	"html/template"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
 )
+
+// instanceColorCount is the size of the instance color palette (the .inst-cN
+// classes in app.css). Instances beyond this cycle back through the palette.
+const instanceColorCount = 8
 
 //go:embed templates/*.html
 var templateFS embed.FS
@@ -20,6 +25,7 @@ var staticFS embed.FS
 // every page set and to render standalone as htmx fragments.
 var partialFiles = []string{
 	"templates/logs_rows.html",
+	"templates/block_cell.html",
 	"templates/stats_panels.html",
 	"templates/health_bar.html",
 }
@@ -36,8 +42,11 @@ type templates struct {
 }
 
 // newTemplates parses all embedded templates, wiring in the shared FuncMap.
-func newTemplates() (*templates, error) {
-	fm := funcMap()
+// The instance list is baked into the color helper so a given instance always
+// renders in the same palette color across the filter chips, log rows, and
+// stats breakdown.
+func newTemplates(instances []string) (*templates, error) {
+	fm := funcMap(instances)
 
 	pages := make(map[string]*template.Template, len(pageFiles))
 	for _, page := range pageFiles {
@@ -56,8 +65,10 @@ func newTemplates() (*templates, error) {
 	return &templates{pages: pages, fragments: fragments}, nil
 }
 
-// funcMap holds the presentation helpers referenced by templates.
-func funcMap() template.FuncMap {
+// funcMap holds the presentation helpers referenced by templates. It closes
+// over the configured instance list so instColor can map a name to a stable
+// color index.
+func funcMap(instances []string) template.FuncMap {
 	return template.FuncMap{
 		"localTime":   localTime,
 		"reasonLabel": reasonLabel,
@@ -68,8 +79,26 @@ func funcMap() template.FuncMap {
 		"percent1":    percent1,
 		"ms3":         ms3,
 		"dict":        dict,
+		"instColor":   instanceColorFunc(instances),
+		"isBlocked":   isBlocked,
 	}
 }
+
+// instanceColorFunc returns a helper mapping an instance name to a palette
+// color index (0..instanceColorCount-1) by its position in the configured
+// list. The mapping is fixed at startup so the same instance is always the same
+// color; unknown names fall back to color 0.
+func instanceColorFunc(instances []string) func(string) int {
+	idx := make(map[string]int, len(instances))
+	for i, name := range instances {
+		idx[name] = i % instanceColorCount
+	}
+	return func(name string) int { return idx[name] }
+}
+
+// isBlocked reports whether a query log reason represents a block, so a row can
+// offer "Unblock" (already blocked) rather than "Block".
+func isBlocked(reason string) bool { return reasonClass(reason) == "blocked" }
 
 // dict builds a map from alternating key/value template arguments, letting a
 // caller pass multiple named values into a sub-template invocation.
@@ -136,12 +165,18 @@ func rowClass(item adguard.QueryLogItem) string {
 	return "row-" + reasonClass(item.Reason)
 }
 
-// formatMs renders AdGuard's elapsedMs string (already milliseconds) compactly.
+// formatMs renders AdGuard's elapsedMs string (already milliseconds) to two
+// decimal places. Non-numeric input falls back to the raw value so nothing is
+// silently dropped.
 func formatMs(elapsed string) string {
 	if elapsed == "" {
 		return ""
 	}
-	return elapsed + " ms"
+	v, err := strconv.ParseFloat(elapsed, 64)
+	if err != nil {
+		return elapsed + " ms"
+	}
+	return fmt.Sprintf("%.2f ms", v)
 }
 
 // comma formats an integer with thousands separators.

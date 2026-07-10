@@ -1,0 +1,11 @@
+{{define "block_cell"}}
+<button type="button" class="block-btn {{if .Blocked}}is-blocked{{else}}is-allowed{{end}}"
+        hx-post="/partials/block"
+        hx-vals='{"domain": "{{.Domain}}", "action": "{{if .Blocked}}unblock{{else}}block{{end}}"}'
+        hx-include="#block-target"
+        hx-target="closest td"
+        hx-swap="innerHTML"
+        hx-disabled-elt="this">
+  {{if .Blocked}}Unblock{{else}}Block{{end}}
+</button>
+{{end}}

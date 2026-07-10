@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -51,6 +52,30 @@ type Fake struct {
 	stats    StatsPayload
 	status   StatusPayload
 	failures Failures
+
+	// rules holds the mutable custom filtering rules. It is a pointer so the
+	// value-copying With* helpers share one store (and one lock) with the
+	// original rather than copying a mutex.
+	rules *ruleStore
+}
+
+// ruleStore is the concurrency-safe backing for a fake's custom filtering
+// rules, mutated by /control/filtering/set_rules and read by /status.
+type ruleStore struct {
+	mu    sync.Mutex
+	rules []string
+}
+
+func (rs *ruleStore) get() []string {
+	rs.mu.Lock()
+	defer rs.mu.Unlock()
+	return append([]string(nil), rs.rules...)
+}
+
+func (rs *ruleStore) set(rules []string) {
+	rs.mu.Lock()
+	defer rs.mu.Unlock()
+	rs.rules = append([]string(nil), rules...)
 }
 
 // StatsPayload is the response shape for /control/stats.
@@ -86,10 +111,15 @@ func New(name, username, password string, entries []Entry) *Fake {
 		Password: password,
 		entries:  sorted,
 		status:   StatusPayload{Running: true, Version: "v0.107.fake", ProtectionEnabled: true},
+		rules:    &ruleStore{},
 	}
 	f.stats = deriveStats(sorted)
 	return f
 }
+
+// Rules returns a copy of the fake's current custom filtering rules, for tests
+// that assert what block/unblock actions persisted.
+func (f *Fake) Rules() []string { return f.rules.get() }
 
 // WithFailures returns a copy of the fake with failure injection applied.
 func (f *Fake) WithFailures(fl Failures) *Fake {
@@ -124,6 +154,8 @@ func (f *Fake) Handler() http.Handler {
 	mux.HandleFunc("GET /control/querylog", f.handleQueryLog)
 	mux.HandleFunc("GET /control/stats", f.handleStats)
 	mux.HandleFunc("GET /control/status", f.handleStatus)
+	mux.HandleFunc("GET /control/filtering/status", f.handleFilteringStatus)
+	mux.HandleFunc("POST /control/filtering/set_rules", f.handleSetRules)
 	return mux
 }
 
@@ -207,6 +239,33 @@ func (f *Fake) handleStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, f.status)
+}
+
+func (f *Fake) handleFilteringStatus(w http.ResponseWriter, r *http.Request) {
+	if !f.authOK(r) {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	writeJSON(w, map[string]any{
+		"enabled":    true,
+		"user_rules": f.rules.get(),
+	})
+}
+
+func (f *Fake) handleSetRules(w http.ResponseWriter, r *http.Request) {
+	if !f.authOK(r) {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	var body struct {
+		Rules []string `json:"rules"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	f.rules.set(body.Rules)
+	writeJSON(w, map[string]any{})
 }
 
 // matchesStatus applies a subset of AdGuard response_status filter semantics

@@ -1,6 +1,7 @@
 package adguard
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -76,5 +77,43 @@ func (c *Client) get(ctx context.Context, path string, query url.Values, out any
 	if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
 		return fmt.Errorf("adguard %q: %s: decode response: %w", c.name, path, err)
 	}
+	return nil
+}
+
+// post performs an authenticated POST with a JSON body against the control API.
+// It is used by the mutating endpoints (custom filtering rules); the response
+// body is discarded. A non-2xx response becomes a typed *APIError. The request
+// honors ctx for cancellation.
+func (c *Client) post(ctx context.Context, path string, body any) error {
+	payload, err := json.Marshal(body)
+	if err != nil {
+		return fmt.Errorf("adguard %q: encode request: %w", c.name, err)
+	}
+
+	full := c.baseURL + controlBase + path
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, full, bytes.NewReader(payload))
+	if err != nil {
+		return fmt.Errorf("adguard %q: build request: %w", c.name, err)
+	}
+	req.SetBasicAuth(c.username, c.password)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("adguard %q: %s: %w", c.name, path, err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
+		return &APIError{
+			Instance: c.name,
+			Path:     path,
+			Status:   resp.StatusCode,
+			Body:     strings.TrimSpace(string(body)),
+		}
+	}
+	// Drain (bounded) so the connection can be reused; the body is unused.
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 1<<16))
 	return nil
 }
