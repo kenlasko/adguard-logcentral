@@ -11,11 +11,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/aggregate"
-	"github.com/kenlasko/adguard-log-aggregator/internal/auth"
-	"github.com/kenlasko/adguard-log-aggregator/internal/buildinfo"
-	"github.com/kenlasko/adguard-log-aggregator/internal/config"
-	"github.com/kenlasko/adguard-log-aggregator/internal/web"
+	"github.com/kenlasko/adguard-logcentral/internal/aggregate"
+	"github.com/kenlasko/adguard-logcentral/internal/auth"
+	"github.com/kenlasko/adguard-logcentral/internal/buildinfo"
+	"github.com/kenlasko/adguard-logcentral/internal/config"
+	"github.com/kenlasko/adguard-logcentral/internal/web"
 )
 
 func main() {

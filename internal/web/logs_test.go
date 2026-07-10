@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard/adguardtest"
-	"github.com/kenlasko/adguard-log-aggregator/internal/auth"
-	"github.com/kenlasko/adguard-log-aggregator/internal/config"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard/adguardtest"
+	"github.com/kenlasko/adguard-logcentral/internal/auth"
+	"github.com/kenlasko/adguard-logcentral/internal/config"
 )
 
 // testServer builds a Server wired to the given clients, with real templates

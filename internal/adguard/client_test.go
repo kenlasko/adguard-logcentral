@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/config"
+	"github.com/kenlasko/adguard-logcentral/internal/config"
 )
 
 // captureServer records the last request it received for assertion.

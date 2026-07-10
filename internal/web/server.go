@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
-	"github.com/kenlasko/adguard-log-aggregator/internal/auth"
-	"github.com/kenlasko/adguard-log-aggregator/internal/buildinfo"
-	"github.com/kenlasko/adguard-log-aggregator/internal/config"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard"
+	"github.com/kenlasko/adguard-logcentral/internal/auth"
+	"github.com/kenlasko/adguard-logcentral/internal/buildinfo"
+	"github.com/kenlasko/adguard-logcentral/internal/config"
 )
 
 // Server holds everything the HTTP handlers need. It is constructed once at

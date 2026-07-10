@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
-	"github.com/kenlasko/adguard-log-aggregator/internal/config"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard"
+	"github.com/kenlasko/adguard-logcentral/internal/config"
 )
 
 // NewClients builds one adguard.Client per configured instance, all sharing a

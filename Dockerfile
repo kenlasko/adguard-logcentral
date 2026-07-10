@@ -21,9 +21,9 @@ ARG BUILD_DATE=unknown
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -trimpath \
     -ldflags="-s -w \
-      -X github.com/kenlasko/adguard-log-aggregator/internal/buildinfo.Version=${VERSION} \
-      -X github.com/kenlasko/adguard-log-aggregator/internal/buildinfo.Commit=${GIT_SHA} \
-      -X github.com/kenlasko/adguard-log-aggregator/internal/buildinfo.Date=${BUILD_DATE}" \
+      -X github.com/kenlasko/adguard-logcentral/internal/buildinfo.Version=${VERSION} \
+      -X github.com/kenlasko/adguard-logcentral/internal/buildinfo.Commit=${GIT_SHA} \
+      -X github.com/kenlasko/adguard-logcentral/internal/buildinfo.Date=${BUILD_DATE}" \
     -o /out/server ./cmd/server
 
 # Runtime stage: distroless static gives CA certs and a nonroot user for free.

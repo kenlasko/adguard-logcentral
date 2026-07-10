@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/aggregate"
-	"github.com/kenlasko/adguard-log-aggregator/internal/auth"
+	"github.com/kenlasko/adguard-logcentral/internal/aggregate"
+	"github.com/kenlasko/adguard-logcentral/internal/auth"
 )
 
 // instanceOption is one instance checkbox in the filter form.

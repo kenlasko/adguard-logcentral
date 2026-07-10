@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/config"
+	"github.com/kenlasko/adguard-logcentral/internal/config"
 )
 
 // controlBase is the common path prefix for the AdGuard Home control API.

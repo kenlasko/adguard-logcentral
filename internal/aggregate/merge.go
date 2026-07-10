@@ -3,7 +3,7 @@ package aggregate
 import (
 	"slices"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard"
 )
 
 // taggedEntries pairs an instance name with the entries fetched from it.

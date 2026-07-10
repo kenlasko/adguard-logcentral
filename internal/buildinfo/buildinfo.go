@@ -8,7 +8,7 @@ import "runtime/debug"
 
 // These variables are overridden at build time, for example:
 //
-//	go build -ldflags "-X github.com/kenlasko/adguard-log-aggregator/internal/buildinfo.Version=1.2.3"
+//	go build -ldflags "-X github.com/kenlasko/adguard-logcentral/internal/buildinfo.Version=1.2.3"
 //
 // See the Dockerfile and .github/workflows/release.yml for the release build.
 var (

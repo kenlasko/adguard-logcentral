@@ -1,7 +1,7 @@
 # Compiled binaries
 /server
 /fakeadguard
-/adguard-log-aggregator
+/adguard-logcentral
 *.exe
 
 # Test / coverage output

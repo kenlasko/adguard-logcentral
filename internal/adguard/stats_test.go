@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard/adguardtest"
-	"github.com/kenlasko/adguard-log-aggregator/internal/config"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard/adguardtest"
+	"github.com/kenlasko/adguard-logcentral/internal/config"
 )
 
 func TestStatsTopNDecoding(t *testing.T) {

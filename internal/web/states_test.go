@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard/adguardtest"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard/adguardtest"
 )
 
 func TestLogsEmptyState(t *testing.T) {

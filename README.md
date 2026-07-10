@@ -66,10 +66,10 @@ Multi-architecture images (`linux/amd64` and `linux/arm64`) are published to the
 GitHub Container Registry:
 
 ```
-ghcr.io/kenlasko/adguard-log-aggregator:latest      # newest release, and tip of main between releases
-ghcr.io/kenlasko/adguard-log-aggregator:1.2.3       # a specific release
-ghcr.io/kenlasko/adguard-log-aggregator:1.2         # latest patch of the 1.2 line
-ghcr.io/kenlasko/adguard-log-aggregator:sha-abc1234 # exact commit on main
+ghcr.io/kenlasko/adguard-logcentral:latest      # newest release, and tip of main between releases
+ghcr.io/kenlasko/adguard-logcentral:1.2.3       # a specific release
+ghcr.io/kenlasko/adguard-logcentral:1.2         # latest patch of the 1.2 line
+ghcr.io/kenlasko/adguard-logcentral:sha-abc1234 # exact commit on main
 ```
 
 Every push to `main` moves `latest` (plus a branch and short-SHA tag) so the tip
@@ -115,15 +115,15 @@ docker run --rm -p 8080:8080 \
   -e OIDC_CLIENT_SECRET="$OIDC_SECRET" \
   -e OIDC_REDIRECT_URL=https://logs.example.com/auth/callback \
   -e SESSION_SECRET="$(openssl rand -hex 32)" \
-  ghcr.io/kenlasko/adguard-log-aggregator:latest
+  ghcr.io/kenlasko/adguard-logcentral:latest
 ```
 
 ### docker compose
 
 ```yaml
 services:
-  adguard-log-aggregator:
-    image: ghcr.io/kenlasko/adguard-log-aggregator:latest
+  adguard-logcentral:
+    image: ghcr.io/kenlasko/adguard-logcentral:latest
     ports:
       - "8080:8080"
     environment:
@@ -151,18 +151,18 @@ services:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: adguard-log-aggregator
+  name: adguard-logcentral
 spec:
   replicas: 1
   selector:
-    matchLabels: { app: adguard-log-aggregator }
+    matchLabels: { app: adguard-logcentral }
   template:
     metadata:
-      labels: { app: adguard-log-aggregator }
+      labels: { app: adguard-logcentral }
     spec:
       containers:
         - name: app
-          image: ghcr.io/kenlasko/adguard-log-aggregator:latest
+          image: ghcr.io/kenlasko/adguard-logcentral:latest
           ports:
             - containerPort: 8080
           env:

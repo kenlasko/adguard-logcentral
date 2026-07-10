@@ -6,13 +6,13 @@ Ground rules (from CLAUDE.md — non-negotiable):
 - Many small files (200-400 lines typical, 800 hard max). Organize by feature/domain.
 - Tests accompany every new piece of functionality, written in the same phase.
 - No emojis in code, comments, or docs. Prefer immutability (return new values, do not mutate inputs). No secrets committed, ever.
-- Module path: `github.com/kenlasko/adguard-log-aggregator`. Only external deps allowed: `github.com/coreos/go-oidc/v3`, `golang.org/x/oauth2` (plus their transitive deps). Everything else stdlib.
+- Module path: `github.com/kenlasko/adguard-logcentral`. Only external deps allowed: `github.com/coreos/go-oidc/v3`, `golang.org/x/oauth2` (plus their transitive deps). Everything else stdlib.
 
 Refer to DESIGN.md for: the composite-cursor algorithm, the indexed env-var scheme, the session cookie format, the htmx wiring, and the full env var table. Do not re-decide anything settled there.
 
 ## Phase 0 — Scaffold
 
-- [ ] **T0.1 Module + hygiene files.** `go mod init github.com/kenlasko/adguard-log-aggregator` (Go 1.26+). Add `.gitignore` (compiled binary, `coverage.out`, editor droppings) and `.dockerignore` (`.git`, docs, README).
+- [ ] **T0.1 Module + hygiene files.** `go mod init github.com/kenlasko/adguard-logcentral` (Go 1.26+). Add `.gitignore` (compiled binary, `coverage.out`, editor droppings) and `.dockerignore` (`.git`, docs, README).
 - [ ] **T0.2 Minimal server.** `cmd/server/main.go`: `log/slog` JSON logger, `http.Server` with Read/Write/Idle/ReadHeader timeouts, `GET /healthz` returning `200 {"status":"ok"}`, graceful shutdown via `signal.NotifyContext(SIGINT, SIGTERM)` with 10s grace.
 
 Exit criteria: `go build ./...` passes; `curl localhost:8080/healthz` returns 200; Ctrl+C shuts down cleanly.

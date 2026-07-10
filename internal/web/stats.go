@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/aggregate"
-	"github.com/kenlasko/adguard-log-aggregator/internal/auth"
+	"github.com/kenlasko/adguard-logcentral/internal/aggregate"
+	"github.com/kenlasko/adguard-logcentral/internal/auth"
 )
 
 // statsView is the data model shared by the stats page and its panels fragment.

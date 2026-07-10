@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard"
-	"github.com/kenlasko/adguard-log-aggregator/internal/adguard/adguardtest"
-	"github.com/kenlasko/adguard-log-aggregator/internal/auth"
-	"github.com/kenlasko/adguard-log-aggregator/internal/config"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard"
+	"github.com/kenlasko/adguard-logcentral/internal/adguard/adguardtest"
+	"github.com/kenlasko/adguard-logcentral/internal/auth"
+	"github.com/kenlasko/adguard-logcentral/internal/config"
 )
 
 // blockSetup wires a Server to a single fake instance and returns the fake (to
