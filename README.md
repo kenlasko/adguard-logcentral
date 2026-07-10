@@ -1,4 +1,4 @@
-# AdGuard Log Aggregator
+# AdGuard Log Central
 
 A single, central web UI that fetches query logs **live** from multiple
 [AdGuard Home](https://adguard.com/en/adguard-home/overview.html) instances,
