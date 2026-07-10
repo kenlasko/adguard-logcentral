@@ -10,7 +10,7 @@ import "runtime/debug"
 //
 //	go build -ldflags "-X github.com/kenlasko/adguard-logcentral/internal/buildinfo.Version=1.2.3"
 //
-// See the Dockerfile and .github/workflows/release.yml for the release build.
+// See the Dockerfile and .github/workflows/ci.yml for the release build.
 var (
 	// Version is the semantic version of the release, without a leading "v".
 	Version = "dev"

@@ -1,9 +1,9 @@
 # Releases and release notes
 
-Releases are cut by manually running the **Release** workflow
-(`.github/workflows/release.yml`) against `main`. The workflow only runs on
-`workflow_dispatch`, and only after the full CI suite (lint, tests,
-`govulncheck`, `gosec`) passes. When it runs it:
+Releases are cut by manually running the **CI** workflow
+(`.github/workflows/ci.yml`) against `main` -- a manual (`workflow_dispatch`)
+run IS a release. The release jobs run only on a manual run, and only after the
+full check suite (lint, tests, `govulncheck`, `gosec`) passes. When it runs it:
 
 1. Resolves the new version from the latest `v*` git tag and the workflow
    inputs (the version lives in git tags, the Go idiom, not in a manifest file).
@@ -25,22 +25,25 @@ curl -s http://localhost:8080/healthz
 
 ## Cutting a release
 
-From the Actions tab: **Actions -> Release -> Run workflow**, pick the branch
+From the Actions tab: **Actions -> CI -> Run workflow**, pick the branch
 `main`, and fill in the inputs. Or from the CLI:
 
 ```sh
 # Patch bump (default): 1.2.0 -> 1.2.1
-gh workflow run Release --ref main
+gh workflow run CI --ref main
 
 # Minor bump: 1.2.0 -> 1.3.0
-gh workflow run Release --ref main -f release_type=minor
+gh workflow run CI --ref main -f release_type=minor
 
 # Major bump: 1.2.0 -> 2.0.0
-gh workflow run Release --ref main -f release_type=major
+gh workflow run CI --ref main -f release_type=major
 
 # Explicit version (overrides release_type)
-gh workflow run Release --ref main -f version=1.3.0
+gh workflow run CI --ref main -f version=1.3.0
 ```
+
+A manual run always cuts a release; run day-to-day checks via a push or PR
+instead.
 
 With no tags yet, a `patch` bump produces `0.0.1`; pass `-f version=1.0.0` to
 start the versioning wherever you like.
@@ -64,7 +67,7 @@ the release body in this order:
    when triggering from the CLI so multi-line Markdown is preserved:
 
    ```sh
-   gh workflow run Release --ref main -f release_type=minor \
+   gh workflow run CI --ref main -f release_type=minor \
      -f release_notes="$(cat my-notes.md)"
    ```
 
@@ -85,7 +88,8 @@ The **Docker** workflow (`.github/workflows/docker.yml`) is separate: it builds
 on every push to `main` (moving `latest` plus a branch and short-SHA tag) and
 builds without pushing on PRs. It deliberately does not run on tags, so it never
 double-builds a release or races the signed release digest. Versioned,
-cosign-signed `v<version>` images come only from the Release workflow.
+cosign-signed `v<version>` images come only from a manual CI run (the release
+path).
 
 ## Archived release notes
 
