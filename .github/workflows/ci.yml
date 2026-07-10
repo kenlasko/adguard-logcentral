@@ -16,10 +16,14 @@ permissions:
   contents: read
 
 env:
-  # Use the toolchain provided by setup-go (from go.mod) and never auto-download
-  # a different one. This also guarantees tools installed via `go install` are
-  # built with the same Go version as the project, which matters on brand-new
-  # Go releases where prebuilt linter binaries may lag behind.
+  # Install the exact patch release the project pins (must match the `toolchain`
+  # directive in go.mod). setup-go reads only the `go` directive from go.mod,
+  # which is the minor floor, so we pin the patch here to pick up stdlib security
+  # fixes that govulncheck enforces.
+  GO_VERSION: "1.26.5"
+  # Use the setup-go toolchain and never auto-download another. This also makes
+  # tools installed via `go install` link against the project's Go version,
+  # which matters on brand-new Go releases where prebuilt linter binaries lag.
   GOTOOLCHAIN: local
 
 jobs:
@@ -32,7 +36,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Verify formatting
         run: |
@@ -74,7 +78,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Build
         run: go build ./...
@@ -101,7 +105,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Install govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
@@ -121,7 +125,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Install gosec
         run: go install github.com/securego/gosec/v2/cmd/gosec@latest

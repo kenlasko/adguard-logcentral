@@ -74,16 +74,26 @@ jobs:
           sbom: true
 
       # Scan the pushed image for OS and Go-binary vulnerabilities. Runs only
-      # when an image was actually pushed (a stable ref exists to scan).
+      # when an image was actually pushed (a stable ref exists to scan). Trivy
+      # is installed via its official script so we do not depend on third-party
+      # action tag availability.
+      - name: Install Trivy
+        if: github.event_name != 'pull_request'
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b "$RUNNER_TEMP/trivy-bin"
+
       - name: Trivy image scan
         if: github.event_name != 'pull_request'
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
-          format: sarif
-          output: trivy.sarif
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
+        env:
+          # Trivy authenticates to GHCR with these to pull the image manifest.
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          "$RUNNER_TEMP/trivy-bin/trivy" image \
+            --format sarif --output trivy.sarif \
+            --severity CRITICAL,HIGH --ignore-unfixed \
+            "${REGISTRY}/${IMAGE_NAME}@${{ steps.build.outputs.digest }}"
 
       - name: Upload Trivy SARIF
         if: github.event_name != 'pull_request'
