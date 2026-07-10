@@ -16,8 +16,12 @@ every request. All configuration is via environment variables and secrets.
 - **Unified query log** across all instances, merged in true time order with
   correct cross-instance pagination (Load more / infinite scroll).
 - **Filtering** by search term (domain or client), response status
-  (blocked / rewritten / allowed), and per-instance checkboxes.
-- **Live tail** via an optional auto-refresh toggle.
+  (blocked / rewritten / allowed), and per-instance color chips (each instance
+  has its own color; click to toggle it in or out of the view).
+- **Block / unblock any domain** straight from a log row. Pick which instance to
+  apply the rule to (remembered in your browser via LocalStorage); with
+  adguardhome-sync the change fans out to the rest.
+- **Live tail** via an auto-refresh toggle, plus a manual refresh button.
 - **Instance health bar** showing each instance's reachability, version, and
   protection state, refreshed every 15 seconds.
 - **Aggregate stats page**: merged totals (queries, blocked, blocked share,

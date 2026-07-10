@@ -51,8 +51,14 @@ func TestLocalTimeAndMs(t *testing.T) {
 	if formatMs("") != "" {
 		t.Error("empty elapsed should render empty")
 	}
-	if formatMs("12") != "12 ms" {
-		t.Errorf("formatMs = %q", formatMs("12"))
+	if got := formatMs("12"); got != "12.00 ms" {
+		t.Errorf("formatMs(%q) = %q, want %q", "12", got, "12.00 ms")
+	}
+	if got := formatMs("1.23456"); got != "1.23 ms" {
+		t.Errorf("formatMs(%q) = %q, want %q", "1.23456", got, "1.23 ms")
+	}
+	if got := formatMs("n/a"); got != "n/a ms" {
+		t.Errorf("formatMs(%q) = %q, want %q", "n/a", got, "n/a ms")
 	}
 }
 

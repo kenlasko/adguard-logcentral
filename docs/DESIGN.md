@@ -19,6 +19,8 @@ Single static Go binary. Module `github.com/kenlasko/adguard-log-aggregator`, Go
 - `GET /control/querylog` — params `older_than` (raw timestamp cursor of last item), `limit`, `search` (domain or client IP), `response_status` (all|filtered|blocked|blocked_safebrowsing|blocked_parental|whitelisted|rewritten|safe_search|processed). Response `{oldest, data: [QueryLogItem]}`; items have `time` (RFC3339Nano), `client`, `client_info`, `question{name,type}`, `reason`, `rules[{filter_list_id,text}]`, `status`, `elapsedMs`, `cached`, `upstream`.
 - `GET /control/stats` — scalar counters + top-N lists as arrays of single-key `{"<domain-or-ip>": count}` maps.
 - `GET /control/status` — `running`, `version`, `protection_enabled` (health probe).
+- `GET /control/filtering/status` — includes `user_rules` (the custom rule list). Read before editing.
+- `POST /control/filtering/set_rules` — body `{rules: [...]}` replaces the whole custom rule list. Used for block/unblock: read `user_rules`, drop the same-domain block/allow pair, append `||domain^` (block) or `@@||domain^` (unblock), then set. Idempotent; unrelated rules preserved. With adguardhome-sync one instance suffices.
 
 ## Key design decisions
 
@@ -73,9 +75,11 @@ internal/web/static/            htmx.min.js (vendored), app.css (~150 lines hand
 
 ## htmx UI wiring
 - **Layout**: nav (Logs | Stats | logout) + `<div id="health-bar" hx-get="/partials/health" hx-trigger="load, every 15s">`.
-- **Logs page**: filter form (search box, status select, instance checkboxes, auto-refresh toggle) with `hx-get="/partials/logs" hx-target="#log-body"`, triggers on change/debounced keyup. Columns: time, instance badge, client, domain, type, reason/status, elapsed, rule (title attr). Row color-coding: blocked=red tint, rewritten=amber.
+- **Logs page**: toolbar with a filter `<form id="filters">` on the left (search box, status select, instance color chips) and right-aligned controls (block-target select, manual refresh button, auto-refresh toggle). Form `hx-get="/partials/logs" hx-target="#log-body"`, triggers on change/debounced keyup. Columns: time, instance badge, client, domain, type, reason/status, elapsed (2 decimals), rule (title attr), block/unblock control. Row color-coding: blocked=red tint, rewritten=amber.
+- **Instance chips**: a per-instance color palette (`.inst-cN`, assigned by position and shared with the row badges and stats breakdown). The `name="instance"` checkbox is visually hidden; a checked chip shows its color, an unchecked one goes grey.
+- **Block/unblock**: each row's control button `hx-post="/partials/block"` with `hx-vals` (domain + block/unblock action) and `hx-include="#block-target"` for the chosen instance; `hx-target="closest td"` swaps the cell to reflect the new state. The block-target `<select>` lives outside `#filters` (so it never leaks into log queries) and is persisted to `localStorage`. Server validates the domain (hostname chars only) and instance before editing rules. CSRF is covered by the SameSite=Lax session cookie: a cross-site POST arrives without it and the auth middleware rejects it.
 - **Load more**: sentinel row with `hx-get="/partials/logs?cursor=..." hx-include="#filters" hx-target="#load-more" hx-swap="outerHTML"` — response replaces sentinel with rows + its own next sentinel (append semantics). Handler distinguishes append vs reset purely by presence of `cursor` param.
-- **Auto-refresh**: htmx conditional polling `every 10s [document.getElementById("auto").checked]` — resets to page 1 (live-tail behavior). No custom JS.
+- **Auto-refresh**: htmx conditional polling `every 10s [document.getElementById("auto").checked]` — resets to page 1 (live-tail behavior). A manual refresh button re-requests `/partials/logs` on demand. Minimal inline JS only for the LocalStorage-backed block target.
 - **Partial-results banner** row when any instance errored. **Stats page**: fragment polled every 60s; totals tiles + three top-10 tables with per-instance breakdown.
 - `render.go`: HX-Request header means fragment only; otherwise fragment wrapped in layout (URLs work on full page load).
 

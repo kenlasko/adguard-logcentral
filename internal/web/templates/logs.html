@@ -1,28 +1,56 @@
 {{define "title"}}Logs - AdGuard Log Aggregator{{end}}
 
 {{define "content"}}
-<form id="filters" class="filters"
-      hx-get="/partials/logs"
-      hx-target="#log-body"
-      hx-swap="innerHTML"
-      hx-trigger="submit, change, keyup delay:300ms from:find input[name=search]">
-  <input type="search" name="search" value="{{.Search}}" placeholder="Search domain or client" autocomplete="off">
+<div class="toolbar">
+  <form id="filters" class="filters"
+        hx-get="/partials/logs"
+        hx-target="#log-body"
+        hx-swap="innerHTML"
+        hx-trigger="submit, change, keyup delay:300ms from:find input[name=search]">
+    <input type="search" name="search" value="{{.Search}}" placeholder="Search domain or client" autocomplete="off">
 
-  <select name="status" aria-label="Response status">
-    <option value="" {{if eq .Status ""}}selected{{end}}>All responses</option>
-    <option value="blocked" {{if eq .Status "blocked"}}selected{{end}}>Blocked</option>
-    <option value="rewritten" {{if eq .Status "rewritten"}}selected{{end}}>Rewritten</option>
-    <option value="processed" {{if eq .Status "processed"}}selected{{end}}>Allowed</option>
-  </select>
+    <select name="status" aria-label="Response status">
+      <option value="" {{if eq .Status ""}}selected{{end}}>All responses</option>
+      <option value="blocked" {{if eq .Status "blocked"}}selected{{end}}>Blocked</option>
+      <option value="rewritten" {{if eq .Status "rewritten"}}selected{{end}}>Rewritten</option>
+      <option value="processed" {{if eq .Status "processed"}}selected{{end}}>Allowed</option>
+    </select>
 
-  <span class="instances">
-    {{range .Instances}}
-    <label class="chk"><input type="checkbox" name="instance" value="{{.Name}}" {{if .Checked}}checked{{end}}> {{.Name}}</label>
-    {{end}}
-  </span>
+    <span class="instances">
+      {{range .Instances}}
+      <label class="inst-chip inst-c{{instColor .Name}}">
+        <input type="checkbox" name="instance" value="{{.Name}}" {{if .Checked}}checked{{end}}>
+        <span class="chip-body">{{.Name}}</span>
+      </label>
+      {{end}}
+    </span>
+  </form>
 
-  <label class="chk auto"><input type="checkbox" id="auto" name="auto" value="on" {{if .AutoRefresh}}checked{{end}}> Auto-refresh</label>
-</form>
+  <div class="toolbar-right">
+    <label class="block-target">
+      <span class="block-target-label">Block via</span>
+      <select id="block-target" name="instance" aria-label="Instance to apply block and unblock rules to">
+        {{range .Instances}}<option value="{{.Name}}">{{.Name}}</option>{{end}}
+      </select>
+    </label>
+
+    <button type="button" class="refresh-btn"
+            hx-get="/partials/logs" hx-include="#filters"
+            hx-target="#log-body" hx-swap="innerHTML"
+            title="Refresh now" aria-label="Refresh now">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4z"/>
+      </svg>
+      <span>Refresh</span>
+    </button>
+
+    <label class="switch" title="Auto-refresh the log every 10 seconds">
+      <input type="checkbox" id="auto" name="auto" value="on" {{if .AutoRefresh}}checked{{end}}>
+      <span class="switch-track"><span class="switch-thumb"></span></span>
+      <span class="switch-text">Auto-refresh</span>
+    </label>
+  </div>
+</div>
 
 <table class="logs">
   <thead>
@@ -34,6 +62,7 @@
       <th>Type</th>
       <th>Result</th>
       <th>Elapsed</th>
+      <th class="control-col"></th>
     </tr>
   </thead>
   <tbody id="log-body"
@@ -43,4 +72,22 @@
     {{template "logs_rows" .}}
   </tbody>
 </table>
+
+<script>
+  // Persist the operator's chosen block target instance across visits.
+  (function () {
+    var sel = document.getElementById('block-target');
+    if (!sel) { return; }
+    var key = 'adguard-block-target';
+    var saved = localStorage.getItem(key);
+    if (saved) {
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === saved) { sel.value = saved; break; }
+      }
+    }
+    sel.addEventListener('change', function () {
+      localStorage.setItem(key, sel.value);
+    });
+  })();
+</script>
 {{end}}

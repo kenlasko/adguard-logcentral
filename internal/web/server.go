@@ -30,13 +30,13 @@ type Server struct {
 // perform OIDC discovery (a network call) with its own context and error
 // handling before wiring the server.
 func NewServer(cfg config.Config, clients []*adguard.Client, authn *auth.Authenticator, mw *auth.Middleware, logger *slog.Logger) (*Server, error) {
-	tmpls, err := newTemplates()
-	if err != nil {
-		return nil, err
-	}
 	names := make([]string, len(cfg.Instances))
 	for i, inst := range cfg.Instances {
 		names[i] = inst.Name
+	}
+	tmpls, err := newTemplates(names)
+	if err != nil {
+		return nil, err
 	}
 	return &Server{
 		cfg:       cfg,
@@ -56,6 +56,7 @@ func (s *Server) Handler() http.Handler {
 	// Application routes.
 	mux.HandleFunc("GET /", s.handleLogsPage)
 	mux.HandleFunc("GET /partials/logs", s.handleLogsPartial)
+	mux.HandleFunc("POST /partials/block", s.handleBlock)
 	mux.HandleFunc("GET /partials/health", s.handleHealthPartial)
 	mux.HandleFunc("GET /stats", s.handleStatsPage)
 	mux.HandleFunc("GET /partials/stats", s.handleStatsPartial)

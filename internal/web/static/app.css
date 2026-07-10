@@ -71,7 +71,9 @@ a:hover { text-decoration: underline; }
 .content { padding: 16px; }
 .page-title { margin: 0 0 16px; font-size: 18px; }
 
-.filters {
+/* The toolbar is one card wrapping the filter form (left) and the auxiliary
+   controls -- block target, manual refresh, auto-refresh (right). */
+.toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -83,7 +85,9 @@ a:hover { text-decoration: underline; }
   border-radius: 8px;
   box-shadow: var(--shadow);
 }
-.filters input[type="search"], .filters select {
+.filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.toolbar-right { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-left: auto; }
+.filters input[type="search"], .filters select, .toolbar-right select {
   padding: 6px 8px;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -91,8 +95,97 @@ a:hover { text-decoration: underline; }
   color: var(--text);
 }
 .filters input[type="search"] { min-width: 240px; }
-.instances { display: flex; flex-wrap: wrap; gap: 10px; }
-.chk { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); }
+
+/* Instance filter chips: each instance carries its own color when selected and
+   goes grey when de-selected. The checkbox stays for form submission but is
+   visually hidden; the chip body is the clickable, colored surface. */
+.instances { display: flex; flex-wrap: wrap; gap: 8px; }
+.inst-chip { position: relative; display: inline-flex; cursor: pointer; user-select: none; }
+.inst-chip input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  margin: 0;
+}
+.chip-body {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  background: var(--chip);
+  color: #fff;
+  border: 1px solid transparent;
+  transition: background 120ms, opacity 120ms;
+}
+.inst-chip input:not(:checked) ~ .chip-body {
+  background: var(--badge-bg);
+  color: var(--muted);
+}
+.inst-chip input:focus-visible ~ .chip-body {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Block target selector on the right of the toolbar. */
+.block-target { display: inline-flex; align-items: center; gap: 6px; }
+.block-target-label { color: var(--muted); font-size: 12px; }
+
+/* Manual refresh button. */
+.refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+.refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+.refresh-btn svg { width: 14px; height: 14px; fill: currentColor; }
+.refresh-btn.htmx-request svg { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Auto-refresh toggle switch, backed by the #auto checkbox. */
+.switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.switch input { position: absolute; width: 1px; height: 1px; opacity: 0; margin: 0; }
+.switch-track {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--badge-bg);
+  border: 1px solid var(--border);
+  transition: background 120ms, border-color 120ms;
+}
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 120ms, background 120ms;
+}
+.switch input:checked ~ .switch-track { background: var(--accent); border-color: var(--accent); }
+.switch input:checked ~ .switch-track .switch-thumb { transform: translateX(16px); background: #fff; }
+.switch input:focus-visible ~ .switch-track { outline: 2px solid var(--accent); outline-offset: 2px; }
+.switch-text { font-size: 13px; color: var(--muted); }
+
+/* Instance color palette, shared by filter chips and instance badges. */
+.inst-c0 { --chip: #2f6feb; }
+.inst-c1 { --chip: #1a7f37; }
+.inst-c2 { --chip: #8250df; }
+.inst-c3 { --chip: #bc4c00; }
+.inst-c4 { --chip: #0e7c86; }
+.inst-c5 { --chip: #bf3989; }
+.inst-c6 { --chip: #cf222e; }
+.inst-c7 { --chip: #4b57d6; }
 
 table.logs, .top-table table {
   width: 100%;
@@ -125,6 +218,27 @@ table.logs, .top-table table {
   font-size: 12px;
   font-weight: 600;
 }
+/* Instance badges reuse the chip palette so a row's instance color matches its
+   filter chip. */
+.badge.inst-badge { background: var(--chip); color: #fff; }
+
+/* Per-row Block/Unblock control. */
+.control { white-space: nowrap; }
+.control-col { width: 1%; }
+.block-btn {
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.block-btn.is-allowed:hover { border-color: var(--blocked-fg); color: var(--blocked-fg); }
+.block-btn.is-blocked { border-color: var(--up); color: var(--up); }
+.block-btn.is-blocked:hover { background: var(--badge-bg); }
+.block-btn:disabled { opacity: 0.55; cursor: default; }
 
 .banner { padding: 8px 12px; border-radius: 6px; margin: 6px 0; }
 .banner.warn { background: var(--rewritten-bg); color: var(--rewritten-fg); }

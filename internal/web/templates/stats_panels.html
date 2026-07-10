@@ -31,7 +31,7 @@
         <td class="domain">{{.Name}}</td>
         <td class="num">{{comma .Count}}</td>
         <td class="breakdown">
-          {{range $i, $p := .PerInstance}}{{if $i}} &middot; {{end}}<span class="badge">{{$p.Instance}}</span> {{comma $p.Count}}{{end}}
+          {{range $i, $p := .PerInstance}}{{if $i}} &middot; {{end}}<span class="badge inst-badge inst-c{{instColor $p.Instance}}">{{$p.Instance}}</span> {{comma $p.Count}}{{end}}
         </td>
       </tr>
       {{else}}
