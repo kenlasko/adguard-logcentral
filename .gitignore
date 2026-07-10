@@ -1,0 +1,16 @@
+# Compiled binaries
+/server
+/fakeadguard
+/adguard-log-aggregator
+*.exe
+
+# Test / coverage output
+coverage.out
+coverage.html
+
+# Editor droppings
+*.swp
+*.swo
+.idea/
+.vscode/
+.DS_Store
