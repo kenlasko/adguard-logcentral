@@ -105,6 +105,14 @@ func (f *Fake) WithStatus(s StatusPayload) *Fake {
 	return &clone
 }
 
+// WithStats overrides the derived stats payload with an explicit one, so stats
+// merge math can be asserted against exact numbers.
+func (f *Fake) WithStats(s StatsPayload) *Fake {
+	clone := *f
+	clone.stats = s
+	return &clone
+}
+
 // Server starts an httptest.Server serving this fake. Callers close it.
 func (f *Fake) Server() *httptest.Server {
 	return httptest.NewServer(f.Handler())
