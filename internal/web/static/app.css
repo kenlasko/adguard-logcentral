@@ -325,3 +325,134 @@ table.logs, .top-table table {
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   }
 }
+
+/* --- Responsive layout ---------------------------------------------------
+   On narrow (phone) viewports the multi-column data tables can't fit, so each
+   row collapses into a stacked "card" with the column header repeated inline
+   via the cell's data-label. The toolbar, top bar, and stat grids also stack.
+   Rules live at the end so they win over the base layout regardless of the
+   color-scheme block above. */
+
+/* Never let a stray wide element push the whole page sideways. */
+body { overflow-x: hidden; }
+
+@media (max-width: 700px) {
+  .content { padding: 12px; }
+  .page-title { font-size: 16px; }
+
+  /* Top bar: let the brand/nav and the session controls wrap onto two rows
+     instead of overflowing a phone's width. */
+  .topbar { flex-wrap: wrap; gap: 8px 12px; padding: 10px 12px; }
+  .nav { flex-wrap: wrap; gap: 8px 14px; }
+
+  .health-bar { padding: 8px 12px; }
+
+  /* Toolbar: stack the filter form above the auxiliary controls, and let the
+     search box and selects span the full width for easier tapping. */
+  .toolbar { gap: 10px; padding: 10px; }
+  .filters { width: 100%; }
+  .filters input[type="search"] { min-width: 0; flex: 1 1 100%; }
+  .filters select { flex: 1 1 100%; }
+  .toolbar-right { width: 100%; margin-left: 0; justify-content: space-between; }
+
+  /* Stat tiles and the "top" panels drop to a single readable column. */
+  .tiles { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+  .tile { padding: 12px; }
+  .tile-value { font-size: 20px; }
+  .top-grid { grid-template-columns: 1fr; }
+
+  /* Turn each wide data table into a list of cards. Every td becomes a labeled
+     row; the hidden thead's labels are re-surfaced through data-label. */
+  table.logs,
+  .instance-stats table,
+  .top-table table {
+    display: block;
+    border: 0;
+    background: transparent;
+    border-radius: 0;
+    overflow: visible;
+  }
+  table.logs thead,
+  .instance-stats thead,
+  .top-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    border: 0;
+  }
+  table.logs tbody,
+  .instance-stats tbody,
+  .top-table tbody { display: block; }
+  table.logs tr,
+  .instance-stats tr,
+  .top-table tr {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    margin-bottom: 10px;
+    padding: 4px 12px;
+  }
+  table.logs tr.row-blocked { background: var(--blocked-bg); }
+  table.logs tr.row-rewritten { background: var(--rewritten-bg); }
+
+  table.logs td,
+  .instance-stats td,
+  .top-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+    white-space: normal;
+  }
+  table.logs tr td:last-child,
+  .instance-stats tr td:last-child,
+  .top-table tr td:last-child { border-bottom: 0; }
+
+  /* The re-surfaced column label sits on the left of each cell. */
+  td[data-label]::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--muted);
+    text-align: left;
+    padding-right: 12px;
+    white-space: nowrap;
+  }
+  /* Keep long domain/name values from spilling off-screen. */
+  .logs td.domain, .top-table td.domain { word-break: break-word; }
+  .top-table td.breakdown { text-align: right; }
+
+  /* Numeric stat columns don't need forced nowrap once stacked. */
+  .instance-stats td.num, .top-table td.num { white-space: normal; }
+
+  /* Full-width rows (banners, empty state, load-more) shouldn't be labeled or
+     split into two columns. */
+  table.logs td[colspan] {
+    display: block;
+    text-align: center;
+    border-bottom: 0;
+    padding: 4px 0;
+  }
+  .load-more { width: 100%; }
+
+  /* Make the per-row Block/Unblock control a full-width, tap-friendly target. */
+  table.logs td.control {
+    display: block;
+    text-align: center;
+    border-bottom: 0;
+    padding-top: 8px;
+  }
+  table.logs td.control .block-btn {
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 13px;
+  }
+}

@@ -103,6 +103,40 @@ func TestMatchesSearchDomainOrClient(t *testing.T) {
 	}
 }
 
+func TestMatchesSearchClientName(t *testing.T) {
+	item := adguard.QueryLogItem{
+		Client:     "192.168.1.2",
+		ClientInfo: &adguard.ClientInfo{Name: "Kitchen-Tablet"},
+		Question:   adguard.Question{Name: "ads.example.com"},
+	}
+
+	cases := []struct {
+		pattern string
+		want    bool
+	}{
+		{"Kitchen-Tablet", true},   // exact client name
+		{"kitchen-tablet", true},   // case-insensitive
+		{"Kitchen*", true},         // client name prefix wildcard
+		{"*Tablet", true},          // client name suffix wildcard
+		{"Kitchen", false},         // substring without wildcard is not a match
+		{"192.168.1.2", true},      // address still matches
+		{"ads.example.com", true},  // domain still matches
+		{"nomatch.invalid", false}, // none of the three
+	}
+	for _, tc := range cases {
+		f := Filter{Search: tc.pattern}
+		if got := f.matchesSearch(item); got != tc.want {
+			t.Errorf("matchesSearch(%q) = %v, want %v", tc.pattern, got, tc.want)
+		}
+	}
+
+	// A nil ClientInfo must not panic and must simply not match on name.
+	noName := adguard.QueryLogItem{Client: "192.168.1.2", Question: adguard.Question{Name: "a.com"}}
+	if (Filter{Search: "Kitchen-Tablet"}).matchesSearch(noName) {
+		t.Error("entry without client_info should not match a client-name search")
+	}
+}
+
 func TestFilterEntriesImmutable(t *testing.T) {
 	in := []adguard.QueryLogItem{
 		{Client: "192.168.1.2", Question: adguard.Question{Name: "a.com"}},

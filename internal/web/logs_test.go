@@ -98,6 +98,30 @@ func TestLogsPageMergesInstancesWithBadges(t *testing.T) {
 	}
 }
 
+// TestLogsRowsCarryResponsiveLabels asserts each data cell exposes a
+// data-label. The mobile card layout re-surfaces the hidden column headers
+// through these attributes, so their absence would silently break the
+// responsive view.
+func TestLogsRowsCarryResponsiveLabels(t *testing.T) {
+	c1, close1 := clientFor(t, "dns1", []adguardtest.Entry{fakeEntry("2026-07-10T00:00:04Z", "1.1.1.1", "a.com", false)})
+	defer close1()
+	s, codec := testServer(t, []string{"dns1"}, []*adguard.Client{c1}, 50)
+	h, cookie := authed(t, codec, s.handleLogsPartial)
+
+	req := httptest.NewRequest("GET", "/partials/logs", nil)
+	req.Header.Set("HX-Request", "true")
+	req.AddCookie(cookie)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	body := rec.Body.String()
+	for _, label := range []string{"Time", "Instance", "Client", "Domain", "Type", "Result", "Elapsed"} {
+		if !strings.Contains(body, `data-label="`+label+`"`) {
+			t.Errorf("log rows missing data-label %q for responsive layout", label)
+		}
+	}
+}
+
 func TestLogsPartialIsFragmentNotFullPage(t *testing.T) {
 	c1, close1 := clientFor(t, "dns1", []adguardtest.Entry{fakeEntry("2026-07-10T00:00:04Z", "1.1.1.1", "a.com", false)})
 	defer close1()

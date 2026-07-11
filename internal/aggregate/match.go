@@ -12,22 +12,32 @@ import (
 // "192.168.1.2*" matches "192.168.1.2", "192.168.1.20", "192.168.1.21", and so
 // on. Matching is case-insensitive and anchored to the whole value.
 //
+// A pattern is matched against three values on each entry: the queried domain,
+// the client address, and the client's friendly name (the name AdGuard shows in
+// brackets beside the address), so an operator can search by whichever they
+// know.
+//
 // AdGuard's own /querylog search is an unanchored substring match, which cannot
 // express "exact only". We therefore treat AdGuard's search purely as a coarse
 // pre-filter (see adguardSearchTerm) that narrows the fetched candidates, and
 // apply the precise anchored/wildcard match ourselves before display. The
-// pre-filter never drops a real match: every match necessarily contains each
-// literal (non-"*") segment of the pattern as a substring, so sending any one
-// such segment to AdGuard only widens, never narrows, the true result set.
+// pre-filter never drops a real match: AdGuard's search matches the same domain,
+// client address, and client name we match here, and every match necessarily
+// contains each literal (non-"*") segment of the pattern as a substring, so
+// sending any one such segment to AdGuard only widens, never narrows, the true
+// result set.
 
 // matchesSearch reports whether an entry satisfies the filter's search pattern,
-// matching against either the queried domain or the client. An empty pattern
-// matches everything.
+// matching against the queried domain, the client address, or the client's
+// friendly name. An empty pattern matches everything.
 func (f Filter) matchesSearch(item adguard.QueryLogItem) bool {
 	if f.Search == "" {
 		return true
 	}
-	return matchGlob(f.Search, item.Question.Name) || matchGlob(f.Search, item.Client)
+	if matchGlob(f.Search, item.Question.Name) || matchGlob(f.Search, item.Client) {
+		return true
+	}
+	return item.ClientInfo != nil && matchGlob(f.Search, item.ClientInfo.Name)
 }
 
 // filterEntries returns a new slice containing only the entries that match the
