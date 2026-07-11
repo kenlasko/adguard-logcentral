@@ -65,9 +65,11 @@ func FetchLogs(ctx context.Context, clients []*adguard.Client, filter Filter, cu
 
 	results := fanOut(ctx, active, func(ctx context.Context, c *adguard.Client) (adguard.QueryLogResponse, error) {
 		return c.QueryLog(ctx, adguard.QueryLogParams{
-			OlderThan:      prev[c.Name()].O,
-			Limit:          pageSize,
-			Search:         filter.Search,
+			OlderThan: prev[c.Name()].O,
+			Limit:     pageSize,
+			// AdGuard's search is a coarse substring pre-filter; the precise
+			// exact/wildcard match is applied to the merged page below.
+			Search:         adguardSearchTerm(filter.Search),
 			ResponseStatus: filter.Status,
 		})
 	})
@@ -89,11 +91,14 @@ func FetchLogs(ctx context.Context, clients []*adguard.Client, filter Filter, cu
 
 	merged := mergeDescending(groups, pageSize)
 
+	// Cursor bookkeeping runs on the raw merged page so pagination advances over
+	// the full AdGuard stream; the precise search filter only hides non-matching
+	// rows from display, leaving HasMore and the cursor untouched.
 	next := buildNextCursor(prev, filter, clients, byInstance, failed, merged.Consumed, pageSize)
 	hasMore := anyNotDone(next, filter, clients)
 
 	page := LogsPage{
-		Entries: merged.Page,
+		Entries: filter.filterEntries(merged.Page),
 		HasMore: hasMore,
 		Errors:  errs,
 	}

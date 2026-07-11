@@ -204,6 +204,24 @@ table.logs, .top-table table {
 .logs td.time, .logs td.elapsed { white-space: nowrap; color: var(--muted); }
 .logs td.domain, .top-table td.domain { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
 
+/* Client and domain values are buttons that set the search filter on click.
+   They inherit the cell's typography so they read as plain text until hovered. */
+.cell-filter {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.cell-filter:hover, .cell-filter:focus-visible {
+  text-decoration: underline;
+  color: var(--accent);
+  outline: none;
+}
+
 .row-blocked { background: var(--blocked-bg); }
 .row-blocked .result.blocked { color: var(--blocked-fg); font-weight: 600; }
 .row-rewritten { background: var(--rewritten-bg); }

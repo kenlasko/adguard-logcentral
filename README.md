@@ -18,6 +18,12 @@ every request. All configuration is via environment variables and secrets.
 - **Filtering** by search term (domain or client), response status
   (blocked / rewritten / allowed), and per-instance color chips (each instance
   has its own color; click to toggle it in or out of the view).
+- **Exact-by-default search with `*` wildcards.** A plain term matches the whole
+  value only, so `192.168.1.2` never matches `192.168.1.20`. Add `*` anywhere to
+  widen the match: `192.168.1.2*` (prefix), `*.example.com` (suffix), or
+  `*ads*` (substring).
+- **Click any client or domain** in a log row to instantly filter by that exact
+  value.
 - **Block / unblock any domain** straight from a log row. Pick which instance to
   apply the rule to (remembered in your browser via LocalStorage); with
   adguardhome-sync the change fans out to the rest.

@@ -292,6 +292,63 @@ func TestScenarioAllDone(t *testing.T) {
 	}
 }
 
+// TestFetchLogsExactSearch verifies that a search without a wildcard returns
+// only exact domain matches, excluding near-miss substrings, even when they
+// span multiple pages (the cursor must scan past the non-matching entries).
+func TestFetchLogsExactSearch(t *testing.T) {
+	f1 := adguardtest.New("dns1", "u", "p", []adguardtest.Entry{
+		entry("2026-07-10T00:00:05Z", "192.168.1.20"),
+		entry("2026-07-10T00:00:04Z", "192.168.1.2"),
+		entry("2026-07-10T00:00:03Z", "192.168.1.21"),
+		entry("2026-07-10T00:00:02Z", "192.168.1.2"),
+		entry("2026-07-10T00:00:01Z", "192.168.1.200"),
+	})
+	s1 := f1.Server()
+	defer s1.Close()
+	clients := []*adguard.Client{clientFor("dns1", s1.URL)}
+
+	// Exact search: only the two "192.168.1.2" entries, none of the near-misses.
+	seq, _ := paginateAll(t, clients, Filter{Search: "192.168.1.2"}, 2)
+	want := []string{"2026-07-10T00:00:04Z", "2026-07-10T00:00:02Z"}
+	if len(seq) != len(want) {
+		t.Fatalf("exact search got %d entries, want %d: %v", len(seq), len(want), seq)
+	}
+	for i := range want {
+		if seq[i] != want[i] {
+			t.Errorf("position %d = %q, want %q", i, seq[i], want[i])
+		}
+	}
+}
+
+// TestFetchLogsWildcardSearch verifies that a trailing "*" matches by prefix,
+// including the near-miss entries excluded by an exact search.
+func TestFetchLogsWildcardSearch(t *testing.T) {
+	f1 := adguardtest.New("dns1", "u", "p", []adguardtest.Entry{
+		entry("2026-07-10T00:00:05Z", "192.168.1.20"),
+		entry("2026-07-10T00:00:04Z", "192.168.1.2"),
+		entry("2026-07-10T00:00:03Z", "192.168.1.21"),
+		entry("2026-07-10T00:00:02Z", "10.0.0.1"),
+	})
+	s1 := f1.Server()
+	defer s1.Close()
+	clients := []*adguard.Client{clientFor("dns1", s1.URL)}
+
+	seq, _ := paginateAll(t, clients, Filter{Search: "192.168.1.2*"}, 2)
+	want := map[string]bool{
+		"2026-07-10T00:00:05Z": true,
+		"2026-07-10T00:00:04Z": true,
+		"2026-07-10T00:00:03Z": true,
+	}
+	if len(seq) != len(want) {
+		t.Fatalf("wildcard search got %d entries, want %d: %v", len(seq), len(want), seq)
+	}
+	for _, r := range seq {
+		if !want[r] {
+			t.Errorf("unexpected entry %q", r)
+		}
+	}
+}
+
 // TestFetchLogsRespectsInstanceFilter verifies unchecking an instance removes
 // its rows entirely.
 func TestFetchLogsRespectsInstanceFilter(t *testing.T) {

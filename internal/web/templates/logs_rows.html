@@ -10,8 +10,8 @@
 <tr class="{{rowClass .}}">
   <td class="time">{{localTime .ParsedTime}}</td>
   <td><span class="badge inst-badge inst-c{{instColor .Instance}}">{{.Instance}}</span></td>
-  <td>{{.Client}}{{with .ClientInfo}}{{if .Name}} <span class="muted">({{.Name}})</span>{{end}}{{end}}</td>
-  <td class="domain">{{.Question.Name}}</td>
+  <td><button type="button" class="cell-filter" data-value="{{.Client}}" title="Filter by this client">{{.Client}}</button>{{with .ClientInfo}}{{if .Name}} <span class="muted">({{.Name}})</span>{{end}}{{end}}</td>
+  <td class="domain"><button type="button" class="cell-filter" data-value="{{.Question.Name}}" title="Filter by this domain">{{.Question.Name}}</button></td>
   <td>{{.Question.Type}}</td>
   <td class="result {{reasonClass .Reason}}"
       {{if .Rules}}title="{{range $i, $r := .Rules}}{{if $i}} | {{end}}{{$r.Text}}{{end}}"{{end}}>
