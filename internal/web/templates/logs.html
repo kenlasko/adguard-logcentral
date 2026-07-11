@@ -1,4 +1,4 @@
-{{define "title"}}Logs - AdGuard Log Aggregator{{end}}
+{{define "title"}}Logs - AdGuard-LogCentral{{end}}
 
 {{define "content"}}
 <div class="toolbar">
@@ -7,7 +7,7 @@
         hx-target="#log-body"
         hx-swap="innerHTML"
         hx-trigger="submit, change, keyup delay:300ms from:find input[name=search]">
-    <input type="search" name="search" value="{{.Search}}" placeholder="Search domain or client" autocomplete="off">
+    <input type="search" name="search" value="{{.Search}}" placeholder="Search domain or client (exact; use * to wildcard)" autocomplete="off">
 
     <select name="status" aria-label="Response status">
       <option value="" {{if eq .Status ""}}selected{{end}}>All responses</option>
@@ -87,6 +87,20 @@
     }
     sel.addEventListener('change', function () {
       localStorage.setItem(key, sel.value);
+    });
+  })();
+
+  // Click a client or domain cell to filter the log by that exact value.
+  (function () {
+    var table = document.querySelector('table.logs');
+    var search = document.querySelector('#filters input[name=search]');
+    if (!table || !search) { return; }
+    table.addEventListener('click', function (ev) {
+      var btn = ev.target.closest('.cell-filter');
+      if (!btn) { return; }
+      search.value = btn.getAttribute('data-value');
+      // Fire the same event the filter form listens for, triggering a refetch.
+      search.dispatchEvent(new Event('change', { bubbles: true }));
     });
   })();
 </script>

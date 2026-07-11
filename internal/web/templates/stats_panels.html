@@ -12,6 +12,34 @@
   <div class="tile"><div class="tile-value">{{ms3 .AvgProcessingTime}}</div><div class="tile-label">Avg processing</div></div>
 </div>
 
+<div class="instance-stats">
+  <h2>Statistics by instance</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Instance</th>
+        <th class="num">Queries</th>
+        <th class="num">Blocked</th>
+        <th class="num">Blocked %</th>
+        <th class="num">Avg processing</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .PerInstance}}
+      <tr>
+        <td><span class="badge inst-badge inst-c{{instColor .Instance}}">{{.Instance}}</span></td>
+        <td class="num">{{comma .NumDNSQueries}}</td>
+        <td class="num">{{comma .NumBlockedFiltering}}</td>
+        <td class="num">{{percent1 .BlockedPercent}}</td>
+        <td class="num">{{ms3 .AvgProcessingTime}}</td>
+      </tr>
+      {{else}}
+      <tr><td colspan="5"><div class="empty">No instance data.</div></td></tr>
+      {{end}}
+    </tbody>
+  </table>
+</div>
+
 <div class="top-grid">
   {{template "top_table" dict "Title" "Top blocked domains" "Rows" .TopBlockedDomains}}
   {{template "top_table" dict "Title" "Top clients" "Rows" .TopClients}}

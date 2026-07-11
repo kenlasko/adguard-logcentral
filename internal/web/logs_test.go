@@ -128,7 +128,8 @@ func TestLogsFilterForwardedToInstances(t *testing.T) {
 	s, codec := testServer(t, []string{"dns1"}, []*adguard.Client{c1}, 50)
 	h, cookie := authed(t, codec, s.handleLogsPartial)
 
-	req := httptest.NewRequest("GET", "/partials/logs?search=ads", nil)
+	// Wildcard prefix search: matches ads.example.com, excludes safe.org.
+	req := httptest.NewRequest("GET", "/partials/logs?search=ads*", nil)
 	req.Header.Set("HX-Request", "true")
 	req.AddCookie(cookie)
 	rec := httptest.NewRecorder()
@@ -200,7 +201,7 @@ func TestLogsCursorRoundTripNoBoundaryLoss(t *testing.T) {
 		h.ServeHTTP(rec, req)
 		body := rec.Body.String()
 		for _, d := range []string{"d1a.com", "d1b.com", "d1c.com", "d2a.com", "d2b.com", "d2c.com"} {
-			seen[d] += strings.Count(body, d+"</td>")
+			seen[d] += strings.Count(body, d+"</button>")
 		}
 		m := cursorRe.FindStringSubmatch(body)
 		if m == nil {

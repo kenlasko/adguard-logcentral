@@ -18,6 +18,12 @@ every request. All configuration is via environment variables and secrets.
 - **Filtering** by search term (domain or client), response status
   (blocked / rewritten / allowed), and per-instance color chips (each instance
   has its own color; click to toggle it in or out of the view).
+- **Exact-by-default search with `*` wildcards.** A plain term matches the whole
+  value only, so `192.168.1.2` never matches `192.168.1.20`. Add `*` anywhere to
+  widen the match: `192.168.1.2*` (prefix), `*.example.com` (suffix), or
+  `*ads*` (substring).
+- **Click any client or domain** in a log row to instantly filter by that exact
+  value.
 - **Block / unblock any domain** straight from a log row. Pick which instance to
   apply the rule to (remembered in your browser via LocalStorage); with
   adguardhome-sync the change fans out to the rest.
@@ -25,8 +31,10 @@ every request. All configuration is via environment variables and secrets.
 - **Instance health bar** showing each instance's reachability, version, and
   protection state, refreshed every 15 seconds.
 - **Aggregate stats page**: merged totals (queries, blocked, blocked share,
-  average processing time) plus combined top-10 blocked domains, clients, and
-  queried domains, each with a per-instance breakdown.
+  average processing time), a per-instance breakdown table (queries, blocked,
+  blocked percentage, and average processing time for each instance on its own
+  row), plus combined top-10 blocked domains, clients, and queried domains, each
+  with a per-instance breakdown.
 - **Partial-results handling**: if an instance is unreachable, the reachable
   instances still render and a banner names the ones that failed.
 - **OIDC login only** (tested with [Pocket-ID](https://pocket-id.org/)), with

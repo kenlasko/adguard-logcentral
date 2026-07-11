@@ -68,6 +68,28 @@ func TestFetchStatsMergeAndWeightedAvg(t *testing.T) {
 	if m.TopBlockedDomains[0].Name != "ads.net" || m.TopBlockedDomains[0].Count != 50 {
 		t.Errorf("top blocked = %+v, want ads.net:50", m.TopBlockedDomains[0])
 	}
+
+	// Per-instance breakdown: one row per instance, in client order, each with
+	// its own blocked share (dns1 40/100 = 40%, dns2 60/300 = 20%).
+	if len(m.PerInstance) != 2 {
+		t.Fatalf("per-instance rows = %d, want 2", len(m.PerInstance))
+	}
+	if m.PerInstance[0].Instance != "dns1" || m.PerInstance[1].Instance != "dns2" {
+		t.Errorf("per-instance order = %q, %q, want dns1, dns2",
+			m.PerInstance[0].Instance, m.PerInstance[1].Instance)
+	}
+	if m.PerInstance[0].NumDNSQueries != 100 || m.PerInstance[0].NumBlockedFiltering != 40 {
+		t.Errorf("dns1 scalars = %+v, want 100/40", m.PerInstance[0])
+	}
+	if diff := m.PerInstance[0].BlockedPercent - 40.0; diff > 1e-9 || diff < -1e-9 {
+		t.Errorf("dns1 blocked percent = %v, want 40", m.PerInstance[0].BlockedPercent)
+	}
+	if diff := m.PerInstance[1].BlockedPercent - 20.0; diff > 1e-9 || diff < -1e-9 {
+		t.Errorf("dns2 blocked percent = %v, want 20", m.PerInstance[1].BlockedPercent)
+	}
+	if diff := m.PerInstance[1].AvgProcessingTime - 0.030; diff > 1e-9 || diff < -1e-9 {
+		t.Errorf("dns2 avg processing = %v, want 0.030", m.PerInstance[1].AvgProcessingTime)
+	}
 }
 
 func TestFetchStatsPartialFailure(t *testing.T) {
