@@ -20,16 +20,17 @@ import (
 // Entry is one seeded query log record. Times are stored as RFC3339Nano
 // strings so the fake round-trips the exact cursor format the real API uses.
 type Entry struct {
-	Time     string
-	Client   string
-	Domain   string
-	QType    string
-	Reason   string
-	Status   string
-	Blocked  bool
-	Rewrite  bool
-	RuleText string
-	Elapsed  string
+	Time       string
+	Client     string
+	ClientName string // friendly name AdGuard shows in brackets beside the address
+	Domain     string
+	QType      string
+	Reason     string
+	Status     string
+	Blocked    bool
+	Rewrite    bool
+	RuleText   string
+	Elapsed    string
 }
 
 // Failures toggles error injection per endpoint.
@@ -194,8 +195,11 @@ func (f *Fake) handleQueryLog(w http.ResponseWriter, r *http.Request) {
 		if olderThan != "" && e.Time >= olderThan {
 			continue // strictly older than the cursor
 		}
+		// AdGuard's server-side search is an unanchored substring match across the
+		// domain, client address, and client name (its ctDomainOrClient criterion).
 		if search != "" && !strings.Contains(strings.ToLower(e.Domain), search) &&
-			!strings.Contains(strings.ToLower(e.Client), search) {
+			!strings.Contains(strings.ToLower(e.Client), search) &&
+			!strings.Contains(strings.ToLower(e.ClientName), search) {
 			continue
 		}
 		if !matchesStatus(e, respStatus) {
@@ -304,6 +308,9 @@ func toWireItems(entries []Entry) []map[string]any {
 			"cached":    false,
 			"upstream":  "https://dns.example:853",
 		}
+		if e.ClientName != "" {
+			items[i]["client_info"] = map[string]any{"name": e.ClientName}
+		}
 	}
 	return items
 }
@@ -383,6 +390,9 @@ func topN(counts map[string]int64, n int) []map[string]int64 {
 func Generate(count int, endTime time.Time, step time.Duration, seed int) []Entry {
 	domains := []string{"example.com", "ads.tracker.net", "cdn.assets.io", "telemetry.vendor.com", "news.site.org", "api.service.dev"}
 	clients := []string{"192.168.1.10", "192.168.1.20", "192.168.1.30", "10.0.0.5"}
+	// Friendly names parallel to clients, so the generated log exposes the
+	// bracketed client names the UI can search by.
+	clientNames := []string{"Living-Room-TV", "Kitchen-Tablet", "Office-Laptop", "Guest-Phone"}
 	qtypes := []string{"A", "AAAA", "HTTPS", "PTR"}
 
 	entries := make([]Entry, count)
@@ -399,16 +409,18 @@ func Generate(count int, endTime time.Time, step time.Duration, seed int) []Entr
 			status = "blocked"
 			rule = "||" + domain + "^"
 		}
+		ci := (seed + i) % len(clients)
 		entries[i] = Entry{
-			Time:     t.Format(time.RFC3339Nano),
-			Client:   clients[(seed+i)%len(clients)],
-			Domain:   domain,
-			QType:    qtypes[(seed+i)%len(qtypes)],
-			Reason:   reason,
-			Status:   status,
-			Blocked:  blocked,
-			RuleText: rule,
-			Elapsed:  fmt.Sprintf("%d", 1+(seed+i)%40),
+			Time:       t.Format(time.RFC3339Nano),
+			Client:     clients[ci],
+			ClientName: clientNames[ci],
+			Domain:     domain,
+			QType:      qtypes[(seed+i)%len(qtypes)],
+			Reason:     reason,
+			Status:     status,
+			Blocked:    blocked,
+			RuleText:   rule,
+			Elapsed:    fmt.Sprintf("%d", 1+(seed+i)%40),
 		}
 	}
 	return entries

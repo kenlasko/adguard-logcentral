@@ -349,6 +349,42 @@ func TestFetchLogsWildcardSearch(t *testing.T) {
 	}
 }
 
+// TestFetchLogsSearchByClientName verifies a search can match the client's
+// friendly name (the bracketed name beside the address), end to end: the coarse
+// term reaches the instance, whose search matches the name like real AdGuard,
+// and the precise local match keeps only the true hits.
+func TestFetchLogsSearchByClientName(t *testing.T) {
+	named := func(raw, client, name, domain string) adguardtest.Entry {
+		return adguardtest.Entry{Time: raw, Client: client, ClientName: name, Domain: domain, QType: "A", Reason: "x", Status: "processed"}
+	}
+	f1 := adguardtest.New("dns1", "u", "p", []adguardtest.Entry{
+		named("2026-07-10T00:00:05Z", "192.168.1.2", "Kitchen-Tablet", "a.com"),
+		named("2026-07-10T00:00:04Z", "192.168.1.3", "Living-Room-TV", "b.com"),
+		named("2026-07-10T00:00:03Z", "192.168.1.4", "Kitchen-Speaker", "c.com"),
+	})
+	s1 := f1.Server()
+	defer s1.Close()
+	clients := []*adguard.Client{clientFor("dns1", s1.URL)}
+
+	// Exact client-name search: only the entry named exactly "Kitchen-Tablet".
+	seq, _ := paginateAll(t, clients, Filter{Search: "Kitchen-Tablet"}, 2)
+	if len(seq) != 1 || seq[0] != "2026-07-10T00:00:05Z" {
+		t.Fatalf("exact client-name search got %v, want just the Kitchen-Tablet row", seq)
+	}
+
+	// Wildcard client-name search: both Kitchen-* devices, not the TV.
+	wild, _ := paginateAll(t, clients, Filter{Search: "Kitchen-*"}, 2)
+	want := map[string]bool{"2026-07-10T00:00:05Z": true, "2026-07-10T00:00:03Z": true}
+	if len(wild) != len(want) {
+		t.Fatalf("wildcard client-name search got %d entries, want %d: %v", len(wild), len(want), wild)
+	}
+	for _, r := range wild {
+		if !want[r] {
+			t.Errorf("unexpected entry %q", r)
+		}
+	}
+}
+
 // TestFetchLogsRespectsInstanceFilter verifies unchecking an instance removes
 // its rows entirely.
 func TestFetchLogsRespectsInstanceFilter(t *testing.T) {

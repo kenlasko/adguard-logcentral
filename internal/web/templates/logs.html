@@ -7,7 +7,7 @@
         hx-target="#log-body"
         hx-swap="innerHTML"
         hx-trigger="submit, change, keyup delay:300ms from:find input[name=search]">
-    <input type="search" name="search" value="{{.Search}}" placeholder="Search domain or client (exact; use * to wildcard)" autocomplete="off">
+    <input type="search" name="search" value="{{.Search}}" placeholder="Search domain, client IP or name (exact; use * to wildcard)" autocomplete="off">
 
     <select name="status" aria-label="Response status">
       <option value="" {{if eq .Status ""}}selected{{end}}>All responses</option>
