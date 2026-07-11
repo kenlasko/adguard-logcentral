@@ -97,6 +97,33 @@ func TestStatsPartialIsFragment(t *testing.T) {
 	}
 }
 
+// TestStatsTablesCarryResponsiveLabels asserts the per-instance and top-N
+// tables tag their cells with data-label so the mobile card layout can show
+// the column name beside each value.
+func TestStatsTablesCarryResponsiveLabels(t *testing.T) {
+	c1, close1 := statsClient(t, "dns1", adguardtest.StatsPayload{
+		NumDNSQueries:       10,
+		NumBlockedFiltering: 1,
+		TopBlockedDomains:   []map[string]int64{{"ads.example.com": 5}},
+	})
+	defer close1()
+	s, codec := testServer(t, []string{"dns1"}, []*adguard.Client{c1}, 50)
+	h, cookie := authed(t, codec, s.handleStatsPartial)
+
+	req := httptest.NewRequest("GET", "/partials/stats", nil)
+	req.Header.Set("HX-Request", "true")
+	req.AddCookie(cookie)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	body := rec.Body.String()
+	for _, label := range []string{"Queries", "Blocked %", "Avg processing", "By instance"} {
+		if !strings.Contains(body, `data-label="`+label+`"`) {
+			t.Errorf("stats tables missing data-label %q for responsive layout", label)
+		}
+	}
+}
+
 func TestStatsPartialFailureBanner(t *testing.T) {
 	c1, close1 := statsClient(t, "dns1", adguardtest.StatsPayload{NumDNSQueries: 10})
 	defer close1()

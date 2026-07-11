@@ -27,11 +27,11 @@
     <tbody>
       {{range .PerInstance}}
       <tr>
-        <td><span class="badge inst-badge inst-c{{instColor .Instance}}">{{.Instance}}</span></td>
-        <td class="num">{{comma .NumDNSQueries}}</td>
-        <td class="num">{{comma .NumBlockedFiltering}}</td>
-        <td class="num">{{percent1 .BlockedPercent}}</td>
-        <td class="num">{{ms3 .AvgProcessingTime}}</td>
+        <td data-label="Instance"><span class="badge inst-badge inst-c{{instColor .Instance}}">{{.Instance}}</span></td>
+        <td class="num" data-label="Queries">{{comma .NumDNSQueries}}</td>
+        <td class="num" data-label="Blocked">{{comma .NumBlockedFiltering}}</td>
+        <td class="num" data-label="Blocked %">{{percent1 .BlockedPercent}}</td>
+        <td class="num" data-label="Avg processing">{{ms3 .AvgProcessingTime}}</td>
       </tr>
       {{else}}
       <tr><td colspan="5"><div class="empty">No instance data.</div></td></tr>
@@ -56,9 +56,9 @@
     <tbody>
       {{range .Rows}}
       <tr>
-        <td class="domain">{{.Name}}</td>
-        <td class="num">{{comma .Count}}</td>
-        <td class="breakdown">
+        <td class="domain" data-label="Name">{{.Name}}</td>
+        <td class="num" data-label="Count">{{comma .Count}}</td>
+        <td class="breakdown" data-label="By instance">
           {{range $i, $p := .PerInstance}}{{if $i}} &middot; {{end}}<span class="badge inst-badge inst-c{{instColor $p.Instance}}">{{$p.Instance}}</span> {{comma $p.Count}}{{end}}
         </td>
       </tr>

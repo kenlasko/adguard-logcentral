@@ -8,16 +8,16 @@
 
 {{range .Page.Entries}}
 <tr class="{{rowClass .}}">
-  <td class="time">{{localTime .ParsedTime}}</td>
-  <td><span class="badge inst-badge inst-c{{instColor .Instance}}">{{.Instance}}</span></td>
-  <td><button type="button" class="cell-filter" data-value="{{.Client}}" title="Filter by this client">{{.Client}}</button>{{with .ClientInfo}}{{if .Name}} <span class="muted">({{.Name}})</span>{{end}}{{end}}</td>
-  <td class="domain"><button type="button" class="cell-filter" data-value="{{.Question.Name}}" title="Filter by this domain">{{.Question.Name}}</button></td>
-  <td>{{.Question.Type}}</td>
-  <td class="result {{reasonClass .Reason}}"
+  <td class="time" data-label="Time">{{localTime .ParsedTime}}</td>
+  <td data-label="Instance"><span class="badge inst-badge inst-c{{instColor .Instance}}">{{.Instance}}</span></td>
+  <td data-label="Client"><button type="button" class="cell-filter" data-value="{{.Client}}" title="Filter by this client">{{.Client}}</button>{{with .ClientInfo}}{{if .Name}} <span class="muted">({{.Name}})</span>{{end}}{{end}}</td>
+  <td class="domain" data-label="Domain"><button type="button" class="cell-filter" data-value="{{.Question.Name}}" title="Filter by this domain">{{.Question.Name}}</button></td>
+  <td data-label="Type">{{.Question.Type}}</td>
+  <td class="result {{reasonClass .Reason}}" data-label="Result"
       {{if .Rules}}title="{{range $i, $r := .Rules}}{{if $i}} | {{end}}{{$r.Text}}{{end}}"{{end}}>
     {{reasonLabel .Reason}}
   </td>
-  <td class="elapsed">{{formatMs .ElapsedMs}}</td>
+  <td class="elapsed" data-label="Elapsed">{{formatMs .ElapsedMs}}</td>
   <td class="control">{{template "block_cell" dict "Domain" .Question.Name "Blocked" (isBlocked .Reason)}}</td>
 </tr>
 {{else}}
