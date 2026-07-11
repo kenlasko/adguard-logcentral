@@ -21,14 +21,26 @@ type MergedTopEntry struct {
 	PerInstance []InstanceCount
 }
 
+// InstanceStats is one instance's scalar counters, retained alongside the
+// merged totals so the UI can show a per-instance breakdown (one row each).
+type InstanceStats struct {
+	Instance            string
+	NumDNSQueries       int64
+	NumBlockedFiltering int64
+	BlockedPercent      float64
+	AvgProcessingTime   float64 // seconds
+}
+
 // MergedStats is the immutable result of merging /control/stats across
-// instances: summed scalars, a query-weighted average processing time, and the
-// three combined top-10 lists.
+// instances: summed scalars, a query-weighted average processing time, the
+// per-instance breakdown, and the three combined top-10 lists.
 type MergedStats struct {
 	NumDNSQueries       int64
 	NumBlockedFiltering int64
 	BlockedPercent      float64
 	AvgProcessingTime   float64 // seconds, query-weighted across instances
+
+	PerInstance []InstanceStats
 
 	TopQueriedDomains []MergedTopEntry
 	TopBlockedDomains []MergedTopEntry
@@ -61,6 +73,7 @@ func FetchStats(ctx context.Context, clients []*adguard.Client) MergedStats {
 		merged.NumDNSQueries += s.NumDNSQueries
 		merged.NumBlockedFiltering += s.NumBlockedFiltering
 		weightedSum += s.AvgProcessingTime * float64(s.NumDNSQueries)
+		merged.PerInstance = append(merged.PerInstance, instanceStats(r.Instance, s))
 		queried.add(r.Instance, s.TopQueriedDomains)
 		blocked.add(r.Instance, s.TopBlockedDomains)
 		clientsMerger.add(r.Instance, s.TopClients)
@@ -74,6 +87,22 @@ func FetchStats(ctx context.Context, clients []*adguard.Client) MergedStats {
 	merged.TopBlockedDomains = blocked.top(topN)
 	merged.TopClients = clientsMerger.top(topN)
 	return merged
+}
+
+// instanceStats projects one instance's raw stats into its scalar breakdown,
+// computing its own blocked share so each row stands alone.
+func instanceStats(instance string, s adguard.Stats) InstanceStats {
+	pct := 0.0
+	if s.NumDNSQueries > 0 {
+		pct = float64(s.NumBlockedFiltering) / float64(s.NumDNSQueries) * 100
+	}
+	return InstanceStats{
+		Instance:            instance,
+		NumDNSQueries:       s.NumDNSQueries,
+		NumBlockedFiltering: s.NumBlockedFiltering,
+		BlockedPercent:      pct,
+		AvgProcessingTime:   s.AvgProcessingTime,
+	}
 }
 
 // topMerger accumulates top-N entries across instances by key, retaining the

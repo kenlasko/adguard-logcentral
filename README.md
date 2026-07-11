@@ -31,8 +31,10 @@ every request. All configuration is via environment variables and secrets.
 - **Instance health bar** showing each instance's reachability, version, and
   protection state, refreshed every 15 seconds.
 - **Aggregate stats page**: merged totals (queries, blocked, blocked share,
-  average processing time) plus combined top-10 blocked domains, clients, and
-  queried domains, each with a per-instance breakdown.
+  average processing time), a per-instance breakdown table (queries, blocked,
+  blocked percentage, and average processing time for each instance on its own
+  row), plus combined top-10 blocked domains, clients, and queried domains, each
+  with a per-instance breakdown.
 - **Partial-results handling**: if an instance is unreachable, the reachable
   instances still render and a banner names the ones that failed.
 - **OIDC login only** (tested with [Pocket-ID](https://pocket-id.org/)), with

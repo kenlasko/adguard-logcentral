@@ -284,6 +284,25 @@ table.logs, .top-table table {
 .top-table td.num { text-align: right; white-space: nowrap; }
 .breakdown { color: var(--muted); font-size: 12px; }
 
+/* Per-instance breakdown: one row per AdGuard instance. */
+.instance-stats { margin-bottom: 20px; }
+.instance-stats h2 { font-size: 14px; margin: 0 0 8px; }
+.instance-stats table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.instance-stats th, .instance-stats td {
+  text-align: left;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.instance-stats th { background: var(--badge-bg); color: var(--muted); font-weight: 600; }
+.instance-stats th.num, .instance-stats td.num { text-align: right; white-space: nowrap; }
+
 /* htmx loading indicator: hidden until a request is in flight. */
 .htmx-indicator { opacity: 0; transition: opacity 200ms; }
 .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; }

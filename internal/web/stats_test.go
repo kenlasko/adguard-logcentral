@@ -63,9 +63,16 @@ func TestStatsPageShowsMergedTotalsAndTopN(t *testing.T) {
 	if !strings.Contains(body, "ads.example.com") || !strings.Contains(body, "300") {
 		t.Error("expected merged top blocked domain with combined count")
 	}
-	// Per-instance breakdown present.
+	// Per-instance breakdown table present, each instance on its own row.
+	if !strings.Contains(body, "Statistics by instance") {
+		t.Error("expected per-instance breakdown table heading")
+	}
 	if !strings.Contains(body, "dns1") || !strings.Contains(body, "dns2") {
 		t.Error("expected per-instance breakdown badges")
+	}
+	// Each instance's own blocked share: 250/1000 = 25.0% appears per row.
+	if strings.Count(body, "25.0%") < 3 {
+		t.Errorf("expected merged 25.0%% plus a 25.0%% row for each instance")
 	}
 }
 
