@@ -96,4 +96,6 @@ path).
 Notes for past releases live alongside this file, one Markdown file per version
 (`docs/release-notes/<version>.md`), mirroring the notes published on the
 matching [GitHub Release](https://github.com/kenlasko/adguard-logcentral/releases).
-No releases have been cut yet; the first one will add the first entry here.
+
+- [v0.1.1](0.1.1.md)
+- [v0.1.0](0.1.0.md)
