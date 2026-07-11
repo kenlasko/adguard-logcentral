@@ -366,14 +366,17 @@ func TestFetchLogsSearchByClientName(t *testing.T) {
 	defer s1.Close()
 	clients := []*adguard.Client{clientFor("dns1", s1.URL)}
 
+	// A page size of 1 forces the filter to work across page boundaries, so the
+	// client-name match is exercised as the cursor advances past non-matching rows.
+	//
 	// Exact client-name search: only the entry named exactly "Kitchen-Tablet".
-	seq, _ := paginateAll(t, clients, Filter{Search: "Kitchen-Tablet"}, 2)
+	seq, _ := paginateAll(t, clients, Filter{Search: "Kitchen-Tablet"}, 1)
 	if len(seq) != 1 || seq[0] != "2026-07-10T00:00:05Z" {
 		t.Fatalf("exact client-name search got %v, want just the Kitchen-Tablet row", seq)
 	}
 
 	// Wildcard client-name search: both Kitchen-* devices, not the TV.
-	wild, _ := paginateAll(t, clients, Filter{Search: "Kitchen-*"}, 2)
+	wild, _ := paginateAll(t, clients, Filter{Search: "Kitchen-*"}, 1)
 	want := map[string]bool{"2026-07-10T00:00:05Z": true, "2026-07-10T00:00:03Z": true}
 	if len(wild) != len(want) {
 		t.Fatalf("wildcard client-name search got %d entries, want %d: %v", len(wild), len(want), wild)
