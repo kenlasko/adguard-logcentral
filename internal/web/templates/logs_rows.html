@@ -8,7 +8,7 @@
 
 {{range .Page.Entries}}
 <tr class="{{rowClass .}}" data-domain="{{.Question.Name}}" data-blocked="{{isBlocked .Reason}}">
-  <td class="time">{{localTime .ParsedTime}}</td>
+  <td class="time"><time datetime="{{isoTime .ParsedTime}}">{{localTime .ParsedTime}}</time></td>
   <td class="instance"><span class="badge inst-badge inst-c{{instColor .Instance}}">{{.Instance}}</span></td>
   <td class="client"><button type="button" class="cell-filter" data-value="{{.Client}}" title="Filter by this client">{{.Client}}</button>{{with .ClientInfo}}{{if .Name}} <span class="muted client-name">({{.Name}})</span>{{end}}{{end}}</td>
   <td class="domain"><button type="button" class="cell-filter" data-value="{{.Question.Name}}" title="Filter by this domain">{{.Question.Name}}</button></td>

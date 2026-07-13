@@ -133,6 +133,26 @@ func TestLogsRowsCarryMobileCardStructure(t *testing.T) {
 	}
 }
 
+// TestLogsRowCarriesMachineReadableTime verifies each time cell emits a
+// <time datetime> with an unambiguous UTC timestamp, which the client script
+// reformats into the viewer's local timezone.
+func TestLogsRowCarriesMachineReadableTime(t *testing.T) {
+	c1, close1 := clientFor(t, "dns1", []adguardtest.Entry{fakeEntry("2026-07-10T00:00:04Z", "1.1.1.1", "a.com", false)})
+	defer close1()
+	s, codec := testServer(t, []string{"dns1"}, []*adguard.Client{c1}, 50)
+	h, cookie := authed(t, codec, s.handleLogsPartial)
+
+	req := httptest.NewRequest("GET", "/partials/logs", nil)
+	req.Header.Set("HX-Request", "true")
+	req.AddCookie(cookie)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	if !strings.Contains(rec.Body.String(), `<time datetime="2026-07-10T00:00:04Z">`) {
+		t.Errorf("time cell should carry a machine-readable UTC datetime, got: %s", rec.Body.String())
+	}
+}
+
 // TestLogsRowMarksBlockedState verifies a blocked entry advertises
 // data-blocked="true" so a long-press offers Unblock rather than Block.
 func TestLogsRowMarksBlockedState(t *testing.T) {
