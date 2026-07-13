@@ -93,6 +93,32 @@
 </div>
 
 <script>
+  // Reformat every timestamp into the viewer's own timezone. The server renders
+  // an unambiguous UTC value in each <time datetime>; here we replace the text
+  // with the browser-local date and time. Runs on load and after every htmx
+  // swap (load-more, auto-refresh, filter changes) so new rows convert too.
+  (function () {
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function formatLocal(d) {
+      return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+        ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    }
+    function localize(root) {
+      var nodes = (root || document).querySelectorAll('time[datetime]:not([data-tz])');
+      for (var i = 0; i < nodes.length; i++) {
+        var el = nodes[i];
+        var d = new Date(el.getAttribute('datetime'));
+        if (!isNaN(d.getTime())) { el.textContent = formatLocal(d); }
+        el.setAttribute('data-tz', '');
+      }
+    }
+    localize(document);
+    // Rescan the whole document after any swap; the :not([data-tz]) guard makes
+    // this idempotent and cheap, and covers outerHTML swaps (load-more) whose
+    // event target does not contain the freshly inserted rows.
+    document.body.addEventListener('htmx:afterSwap', function () { localize(document); });
+  })();
+
   // Persist the operator's chosen block target instance across visits.
   (function () {
     var sel = document.getElementById('block-target');

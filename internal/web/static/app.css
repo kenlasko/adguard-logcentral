@@ -404,11 +404,18 @@ body { overflow-x: hidden; }
   .filters select { flex: 1 1 100%; }
   .toolbar-right { width: 100%; margin-left: 0; justify-content: space-between; }
 
-  /* Give the block-target its own full-width row so its select can never
-     overflow the viewport: the select flexes to fill and, with min-width: 0,
-     shrinks below its longest option instead of pushing the page sideways. */
-  .toolbar-right .block-target { flex: 1 1 100%; }
-  .toolbar-right .block-target select { flex: 1 1 auto; min-width: 0; max-width: 100%; }
+  /* Give the block-target its own full-width row and stack its label above a
+     full-width select. Stacking (rather than sitting the select beside the
+     label) means the select always gets the whole row at width:100%, so even a
+     long instance name can never push it past the viewport edge. */
+  .toolbar-right .block-target {
+    flex: 1 1 100%;
+    min-width: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  .toolbar-right .block-target select { width: 100%; min-width: 0; }
 
   /* Stat tiles and the "top" panels drop to a single readable column. */
   .tiles { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
@@ -481,10 +488,10 @@ body { overflow-x: hidden; }
   .instance-stats td.num, .top-table td.num { white-space: normal; }
 
   /* --- Logs: each row is a two-column card, no repeated headers ------------
-     The eight table cells are paired into four lines via an explicit grid:
+     The table cells are laid out into four lines via an explicit grid:
        Time     | Instance
        Client IP ......... name   (spans both columns)
-       Domain   | Type
+       Domain ............ (spans both columns; query type hidden)
        Result   | Elapsed
      The Block/Unblock control is hidden; blocking is done by long-pressing a
      row, which opens the confirmation modal. minmax(0, 1fr) lets a long domain
@@ -530,8 +537,8 @@ body { overflow-x: hidden; }
   table.logs td.time    { grid-column: 1; grid-row: 1; text-align: left; white-space: normal; }
   table.logs td.instance{ grid-column: 2; grid-row: 1; text-align: right; }
   table.logs td.client  { grid-column: 1 / -1; grid-row: 2; display: flex; justify-content: space-between; gap: 12px; }
-  table.logs td.domain  { grid-column: 1; grid-row: 3; text-align: left; }
-  table.logs td.qtype   { grid-column: 2; grid-row: 3; text-align: right; color: var(--muted); }
+  table.logs td.domain  { grid-column: 1 / -1; grid-row: 3; text-align: left; }
+  table.logs td.qtype   { display: none; }
   table.logs td.result  { grid-column: 1; grid-row: 4; text-align: left; }
   table.logs td.elapsed { grid-column: 2; grid-row: 4; text-align: right; }
   table.logs td.control { display: none; }

@@ -44,6 +44,19 @@ func TestReasonMapping(t *testing.T) {
 	}
 }
 
+func TestIsoTime(t *testing.T) {
+	if isoTime(time.Time{}) != "" {
+		t.Error("zero time should render empty")
+	}
+	// A fixed instant renders as an unambiguous UTC RFC3339 string regardless of
+	// the input's zone, so the browser can reformat it to the viewer's timezone.
+	loc := time.FixedZone("EST", -5*3600)
+	got := isoTime(time.Date(2026, 7, 13, 4, 30, 5, 0, loc))
+	if got != "2026-07-13T09:30:05Z" {
+		t.Errorf("isoTime = %q, want %q", got, "2026-07-13T09:30:05Z")
+	}
+}
+
 func TestLocalTimeAndMs(t *testing.T) {
 	if localTime(time.Time{}) != "" {
 		t.Error("zero time should render empty")

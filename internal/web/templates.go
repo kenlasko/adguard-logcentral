@@ -71,6 +71,7 @@ func newTemplates(instances []string) (*templates, error) {
 func funcMap(instances []string) template.FuncMap {
 	return template.FuncMap{
 		"localTime":   localTime,
+		"isoTime":     isoTime,
 		"reasonLabel": reasonLabel,
 		"reasonClass": reasonClass,
 		"rowClass":    rowClass,
@@ -118,12 +119,25 @@ func dict(pairs ...any) (map[string]any, error) {
 }
 
 // localTime formats a query log timestamp for display in the server's local
-// zone. It accepts the parsed time to avoid re-parsing the raw string.
+// zone. It accepts the parsed time to avoid re-parsing the raw string. This is
+// only the no-JavaScript fallback: the browser reformats each timestamp into
+// the viewer's own timezone from the machine-readable isoTime value.
 func localTime(t time.Time) string {
 	if t.IsZero() {
 		return ""
 	}
 	return t.Local().Format("2006-01-02 15:04:05")
+}
+
+// isoTime renders a query log timestamp as an unambiguous UTC RFC3339 string
+// for a <time> element's datetime attribute, so client-side script can reformat
+// it in the viewer's local timezone regardless of where the server runs. Empty
+// for the zero time.
+func isoTime(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.UTC().Format(time.RFC3339)
 }
 
 // reasonLabel maps AdGuard's reason codes to short human labels.
