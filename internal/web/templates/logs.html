@@ -73,6 +73,25 @@
   </tbody>
 </table>
 
+<!-- Confirmation modal for the mobile long-press block/unblock flow. Hidden
+     until a long-press on a log row opens it. -->
+<div id="block-modal" class="modal" hidden>
+  <div class="modal-backdrop" data-modal-close></div>
+  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="block-modal-title">
+    <h2 id="block-modal-title" class="modal-title">Block domain</h2>
+    <p class="modal-body">
+      <span id="block-modal-action">Block</span>
+      <span id="block-modal-domain" class="modal-domain"></span>
+      on <strong id="block-modal-instance"></strong>?
+    </p>
+    <p id="block-modal-error" class="modal-error" hidden>Could not update the rule. Please try again.</p>
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-cancel" data-modal-close>Cancel</button>
+      <button type="button" class="modal-btn modal-confirm" id="block-modal-confirm">Block</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // Persist the operator's chosen block target instance across visits.
   (function () {
@@ -98,9 +117,119 @@
     table.addEventListener('click', function (ev) {
       var btn = ev.target.closest('.cell-filter');
       if (!btn) { return; }
+      // A long-press swallows the click that would otherwise filter (see below).
+      if (table.dataset.longPressed === 'true') { return; }
       search.value = btn.getAttribute('data-value');
       // Fire the same event the filter form listens for, triggering a refetch.
       search.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  })();
+
+  // Long-press a log row to block or unblock its domain via a confirmation
+  // modal. This is the touch-only replacement for the per-row Block button,
+  // which the mobile card layout hides.
+  (function () {
+    var table = document.querySelector('table.logs');
+    var modal = document.getElementById('block-modal');
+    var targetSel = document.getElementById('block-target');
+    if (!table || !modal) { return; }
+
+    var LONG_PRESS_MS = 500;
+    var MOVE_TOLERANCE = 10;
+    var confirmBtn = document.getElementById('block-modal-confirm');
+    var errorEl = document.getElementById('block-modal-error');
+    var timer = null;
+    var startX = 0, startY = 0;
+    var pending = null; // { row, domain, action, instance }
+
+    function clearTimer() {
+      if (timer) { window.clearTimeout(timer); timer = null; }
+    }
+
+    function openModal(row) {
+      var blocked = row.getAttribute('data-blocked') === 'true';
+      var action = blocked ? 'unblock' : 'block';
+      var label = blocked ? 'Unblock' : 'Block';
+      var instance = targetSel ? targetSel.value : '';
+      pending = { row: row, domain: row.getAttribute('data-domain'), action: action, instance: instance };
+
+      document.getElementById('block-modal-title').textContent = label + ' domain';
+      document.getElementById('block-modal-action').textContent = label;
+      document.getElementById('block-modal-domain').textContent = pending.domain;
+      document.getElementById('block-modal-instance').textContent = instance;
+      confirmBtn.textContent = label;
+      confirmBtn.className = 'modal-btn modal-confirm ' + (blocked ? 'is-unblock' : 'is-block');
+      confirmBtn.disabled = false;
+      errorEl.hidden = true;
+
+      modal.hidden = false;
+      document.body.classList.add('modal-open');
+      confirmBtn.focus();
+    }
+
+    function closeModal() {
+      modal.hidden = true;
+      document.body.classList.remove('modal-open');
+      pending = null;
+    }
+
+    function submit() {
+      if (!pending) { return; }
+      var body = new URLSearchParams();
+      body.set('domain', pending.domain);
+      body.set('action', pending.action);
+      body.set('instance', pending.instance);
+      confirmBtn.disabled = true;
+      errorEl.hidden = true;
+      fetch('/partials/block', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString(),
+        credentials: 'same-origin'
+      }).then(function (resp) {
+        if (!resp.ok) { throw new Error('block request failed'); }
+        // Reflect the new state so a later long-press offers the inverse action.
+        pending.row.setAttribute('data-blocked', pending.action === 'block' ? 'true' : 'false');
+        closeModal();
+      }).catch(function () {
+        confirmBtn.disabled = false;
+        errorEl.hidden = false;
+      });
+    }
+
+    // Touch handlers drive the press-and-hold gesture.
+    table.addEventListener('touchstart', function (ev) {
+      var row = ev.target.closest('tr[data-domain]');
+      if (!row) { return; }
+      var t = ev.touches[0];
+      startX = t.clientX;
+      startY = t.clientY;
+      table.dataset.longPressed = 'false';
+      clearTimer();
+      timer = window.setTimeout(function () {
+        table.dataset.longPressed = 'true';
+        openModal(row);
+      }, LONG_PRESS_MS);
+    }, { passive: true });
+
+    table.addEventListener('touchmove', function (ev) {
+      var t = ev.touches[0];
+      if (Math.abs(t.clientX - startX) > MOVE_TOLERANCE ||
+          Math.abs(t.clientY - startY) > MOVE_TOLERANCE) {
+        clearTimer();
+      }
+    }, { passive: true });
+
+    table.addEventListener('touchend', clearTimer);
+    table.addEventListener('touchcancel', clearTimer);
+
+    // Dismiss controls: Cancel button, backdrop tap, or the Escape key.
+    modal.addEventListener('click', function (ev) {
+      if (ev.target.closest('[data-modal-close]')) { closeModal(); }
+    });
+    confirmBtn.addEventListener('click', submit);
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape' && !modal.hidden) { closeModal(); }
     });
   })();
 </script>
