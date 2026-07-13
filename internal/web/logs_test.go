@@ -98,11 +98,11 @@ func TestLogsPageMergesInstancesWithBadges(t *testing.T) {
 	}
 }
 
-// TestLogsRowsCarryResponsiveLabels asserts each data cell exposes a
-// data-label. The mobile card layout re-surfaces the hidden column headers
-// through these attributes, so their absence would silently break the
-// responsive view.
-func TestLogsRowsCarryResponsiveLabels(t *testing.T) {
+// TestLogsRowsCarryMobileCardStructure asserts each data cell carries the class
+// the mobile grid card pairs cells by, and that the row exposes the domain and
+// blocked state the long-press block flow reads. The mobile view drops the
+// per-cell column headers, so no data-label should remain on a log row.
+func TestLogsRowsCarryMobileCardStructure(t *testing.T) {
 	c1, close1 := clientFor(t, "dns1", []adguardtest.Entry{fakeEntry("2026-07-10T00:00:04Z", "1.1.1.1", "a.com", false)})
 	defer close1()
 	s, codec := testServer(t, []string{"dns1"}, []*adguard.Client{c1}, 50)
@@ -115,9 +115,60 @@ func TestLogsRowsCarryResponsiveLabels(t *testing.T) {
 	h.ServeHTTP(rec, req)
 
 	body := rec.Body.String()
-	for _, label := range []string{"Time", "Instance", "Client", "Domain", "Type", "Result", "Elapsed"} {
-		if !strings.Contains(body, `data-label="`+label+`"`) {
-			t.Errorf("log rows missing data-label %q for responsive layout", label)
+	for _, cls := range []string{`class="time"`, `class="instance"`, `class="client"`, `class="domain"`, `class="qtype"`, `class="elapsed"`} {
+		if !strings.Contains(body, cls) {
+			t.Errorf("log rows missing cell %s for mobile card layout", cls)
+		}
+	}
+	// The long-press flow reads these off the row.
+	if !strings.Contains(body, `data-domain="a.com"`) {
+		t.Error("log row should carry data-domain for the long-press block flow")
+	}
+	if !strings.Contains(body, `data-blocked="false"`) {
+		t.Error("an allowed row should carry data-blocked=\"false\"")
+	}
+	// The mobile card drops the repeated per-cell headers.
+	if strings.Contains(body, "data-label=") {
+		t.Error("log rows should not carry data-label headers after the mobile redesign")
+	}
+}
+
+// TestLogsRowMarksBlockedState verifies a blocked entry advertises
+// data-blocked="true" so a long-press offers Unblock rather than Block.
+func TestLogsRowMarksBlockedState(t *testing.T) {
+	c1, close1 := clientFor(t, "dns1", []adguardtest.Entry{fakeEntry("2026-07-10T00:00:04Z", "1.1.1.1", "ads.example.com", true)})
+	defer close1()
+	s, codec := testServer(t, []string{"dns1"}, []*adguard.Client{c1}, 50)
+	h, cookie := authed(t, codec, s.handleLogsPartial)
+
+	req := httptest.NewRequest("GET", "/partials/logs", nil)
+	req.Header.Set("HX-Request", "true")
+	req.AddCookie(cookie)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	if !strings.Contains(rec.Body.String(), `data-blocked="true"`) {
+		t.Error("a blocked row should carry data-blocked=\"true\"")
+	}
+}
+
+// TestLogsPageHasBlockModal ensures the confirmation modal the long-press flow
+// opens is rendered on the full logs page.
+func TestLogsPageHasBlockModal(t *testing.T) {
+	c1, close1 := clientFor(t, "dns1", []adguardtest.Entry{fakeEntry("2026-07-10T00:00:04Z", "1.1.1.1", "a.com", false)})
+	defer close1()
+	s, codec := testServer(t, []string{"dns1"}, []*adguard.Client{c1}, 50)
+	h, cookie := authed(t, codec, s.handleLogsPage)
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.AddCookie(cookie)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	body := rec.Body.String()
+	for _, want := range []string{`id="block-modal"`, `id="block-modal-confirm"`, `id="block-modal-domain"`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("logs page missing modal element %q", want)
 		}
 	}
 }
