@@ -21,6 +21,9 @@ func (s *Server) renderPage(w http.ResponseWriter, page string, data any) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	// Authenticated pages carry query-log data (client IPs, domains); keep them
+	// out of shared and browser caches.
+	w.Header().Set("Cache-Control", "no-store")
 	_, _ = buf.WriteTo(w)
 }
 
@@ -33,5 +36,7 @@ func (s *Server) renderFragment(w http.ResponseWriter, name string, data any) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	// Fragments carry the same query-log data as full pages; never cache them.
+	w.Header().Set("Cache-Control", "no-store")
 	_, _ = buf.WriteTo(w)
 }

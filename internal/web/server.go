@@ -71,7 +71,26 @@ func (s *Server) Handler() http.Handler {
 	// Auth endpoints (allowlisted by the middleware).
 	s.auth.Routes(mux)
 
-	return s.mw.RequireAuth(mux)
+	return securityHeaders(s.mw.RequireAuth(mux))
+}
+
+// securityHeaders sets defense-in-depth response headers on every response. The
+// CSP is deliberately strict: the app self-hosts its only script (htmx) and
+// stylesheet, so 'self' needs no inline exceptions. frame-ancestors 'none'
+// blocks clickjacking of the block/unblock controls; nosniff blocks MIME
+// confusion; no-referrer keeps query-log URLs out of upstream Referer headers.
+func securityHeaders(next http.Handler) http.Handler {
+	const csp = "default-src 'self'; script-src 'self'; style-src 'self'; " +
+		"img-src 'self' data:; object-src 'none'; base-uri 'none'; " +
+		"form-action 'self'; frame-ancestors 'none'"
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := w.Header()
+		h.Set("Content-Security-Policy", csp)
+		h.Set("X-Content-Type-Options", "nosniff")
+		h.Set("X-Frame-Options", "DENY")
+		h.Set("Referrer-Policy", "no-referrer")
+		next.ServeHTTP(w, r)
+	})
 }
 
 // HTTPServer wraps Handler in an *http.Server with sane timeouts.

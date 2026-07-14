@@ -63,15 +63,40 @@ func (s *Server) buildLogsView(r *http.Request, cursor *aggregate.Cursor) logsVi
 	}
 }
 
+// validStatuses is the allowlist of AdGuard response_status filter values this
+// app forwards upstream. Anything else (including a crafted query param) is
+// dropped to "" so the request falls back to "all responses" rather than
+// forwarding unvalidated input to the instance API.
+var validStatuses = map[string]bool{
+	"all":                  true,
+	"filtered":             true,
+	"blocked":              true,
+	"blocked_safebrowsing": true,
+	"blocked_parental":     true,
+	"whitelisted":          true,
+	"rewritten":            true,
+	"safe_search":          true,
+	"processed":            true,
+}
+
 // parseFilter builds an aggregate.Filter from the request query. An empty
 // instance selection means "all instances" (aggregate treats nil as all).
 func parseFilter(r *http.Request) aggregate.Filter {
 	q := r.URL.Query()
 	return aggregate.Filter{
 		Search:    strings.TrimSpace(q.Get("search")),
-		Status:    q.Get("status"),
+		Status:    validStatus(q.Get("status")),
 		Instances: q["instance"],
 	}
+}
+
+// validStatus returns status if it is a recognized AdGuard response_status
+// value, otherwise "" (meaning no status filter).
+func validStatus(status string) string {
+	if validStatuses[status] {
+		return status
+	}
+	return ""
 }
 
 // instanceOptions computes checkbox state: with no explicit selection every

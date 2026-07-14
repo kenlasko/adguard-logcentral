@@ -138,6 +138,8 @@ func TestSafeReturnTo(t *testing.T) {
 		"":                 "/",
 		"/stats":           "/stats",
 		"//evil.com":       "/",
+		`/\evil.com`:       "/", // browsers normalize /\ to //, so reject it
+		`/\/evil.com`:      "/",
 		"https://evil.com": "/",
 		"/logs?search=x":   "/logs?search=x",
 	}
