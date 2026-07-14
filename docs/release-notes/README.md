@@ -97,6 +97,7 @@ Notes for past releases live alongside this file, one Markdown file per version
 (`docs/release-notes/<version>.md`), mirroring the notes published on the
 matching [GitHub Release](https://github.com/kenlasko/adguard-logcentral/releases).
 
+- [v0.2.4](0.2.4.md)
 - [v0.2.3](0.2.3.md)
 - [v0.2.2](0.2.2.md)
 - [v0.2.1](0.2.1.md)
