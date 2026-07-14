@@ -1,4 +1,6 @@
 # AdGuard Log Central
+> [!CAUTION] 
+> This project is 100% written by AI. I've done practically zero manual changes. I am not a programmer by trade, but have dabbled in various languages over the years. This gives me high-level awareness on coding practices, but **I AM NOT SKILLED IN THE LANGUAGES USED IN THIS PRODUCT**. I have spent months prompting Claude Code for features, updates, fixes and tweaks. I have taken steps to ensure this is secure as it can be, given the constraints. I've performed numerous security audits (both AI-prompted and 3rd party) and have implemented best-practice security measures as much as I can. Every build must pass code quality audits and security scans before publishing. However, I can't personally guarantee the security of this code. **YOU HAVE BEEN WARNED**.
 
 A single, central web UI that fetches query logs **live** from multiple
 [AdGuard Home](https://adguard.com/en/adguard-home/overview.html) instances,
