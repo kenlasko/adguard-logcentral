@@ -145,6 +145,12 @@ func (i *Issuer) handleAuthorize(w http.ResponseWriter, r *http.Request) {
 	rq.Set("code", code)
 	rq.Set("state", state)
 	dest.RawQuery = rq.Encode()
+	// #nosec G710 -- dest derives from redirectURI, which the allowlist check
+	// above already constrained to a redirect_uri the client registered via
+	// AllowRedirectURI. gosec's taint analysis cannot see that map-membership
+	// barrier and reports an open redirect anyway; the destination is validated,
+	// so this is a false positive. (CodeQL, which does model the barrier, is
+	// satisfied without a suppression.)
 	http.Redirect(w, r, dest.String(), http.StatusFound)
 }
 
