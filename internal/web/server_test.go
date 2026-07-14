@@ -36,6 +36,7 @@ func TestEndToEndThroughFullStack(t *testing.T) {
 		handler.ServeHTTP(w, r)
 	}))
 	defer ts.Close()
+	iss.AllowRedirectURI(ts.URL + "/auth/callback")
 
 	codec, err := auth.NewCodec(strings.Repeat("k", 32), false)
 	if err != nil {

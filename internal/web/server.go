@@ -75,10 +75,13 @@ func (s *Server) Handler() http.Handler {
 }
 
 // securityHeaders sets defense-in-depth response headers on every response. The
-// CSP is deliberately strict: the app self-hosts its only script (htmx) and
-// stylesheet, so 'self' needs no inline exceptions. frame-ancestors 'none'
-// blocks clickjacking of the block/unblock controls; nosniff blocks MIME
-// confusion; no-referrer keeps query-log URLs out of upstream Referer headers.
+// CSP is deliberately strict: the app self-hosts every script (htmx and the
+// page behaviour in logs.js) and its stylesheet, so 'self' needs no inline or
+// eval exceptions. Page scripts live in external files, and auto-refresh is
+// driven from JavaScript rather than an htmx bracket-filter trigger, so nothing
+// relies on 'unsafe-inline' or 'unsafe-eval'. frame-ancestors 'none' blocks
+// clickjacking of the block/unblock controls; nosniff blocks MIME confusion;
+// no-referrer keeps query-log URLs out of upstream Referer headers.
 func securityHeaders(next http.Handler) http.Handler {
 	const csp = "default-src 'self'; script-src 'self'; style-src 'self'; " +
 		"img-src 'self' data:; object-src 'none'; base-uri 'none'; " +

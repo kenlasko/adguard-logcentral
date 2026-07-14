@@ -40,8 +40,9 @@ type Issuer struct {
 	// audience-mismatch rejection.
 	ForceAudience string
 
-	mu    sync.Mutex
-	codes map[string]string // authorization code -> nonce
+	mu           sync.Mutex
+	codes        map[string]string   // authorization code -> nonce
+	redirectURIs map[string]struct{} // registered client redirect_uris
 }
 
 // New starts a fake issuer with the given client ID and identity claims.
@@ -51,12 +52,13 @@ func New(clientID, subject, name, email string) *Issuer {
 		panic(err)
 	}
 	iss := &Issuer{
-		key:      key,
-		ClientID: clientID,
-		Subject:  subject,
-		Name:     name,
-		Email:    email,
-		codes:    map[string]string{},
+		key:          key,
+		ClientID:     clientID,
+		Subject:      subject,
+		Name:         name,
+		Email:        email,
+		codes:        map[string]string{},
+		redirectURIs: map[string]struct{}{},
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /.well-known/openid-configuration", iss.handleDiscovery)
@@ -69,6 +71,16 @@ func New(clientID, subject, name, email string) *Issuer {
 
 // URL returns the issuer base URL (its "iss" value).
 func (i *Issuer) URL() string { return i.server.URL }
+
+// AllowRedirectURI registers a redirect_uri that the authorize endpoint will
+// honour. Real OpenID providers redirect only to redirect_uris pre-registered
+// for the client; mirroring that here means an authorize request carrying any
+// other value is rejected instead of blindly followed.
+func (i *Issuer) AllowRedirectURI(uri string) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	i.redirectURIs[uri] = struct{}{}
+}
 
 // Close shuts down the issuer.
 func (i *Issuer) Close() { i.server.Close() }
@@ -108,9 +120,21 @@ func (i *Issuer) handleAuthorize(w http.ResponseWriter, r *http.Request) {
 	nonce := q.Get("nonce")
 
 	code := randString()
+
+	// Only redirect to a redirect_uri the client registered via
+	// AllowRedirectURI. Choosing the destination from this server-side allowlist
+	// (rather than following whatever the request supplied) closes the open
+	// redirect: an unregistered value never reaches http.Redirect.
 	i.mu.Lock()
-	i.codes[code] = nonce
+	_, allowed := i.redirectURIs[redirectURI]
+	if allowed {
+		i.codes[code] = nonce
+	}
 	i.mu.Unlock()
+	if !allowed {
+		http.Error(w, "unregistered redirect_uri", http.StatusBadRequest)
+		return
+	}
 
 	dest, err := url.Parse(redirectURI)
 	if err != nil {
@@ -121,8 +145,12 @@ func (i *Issuer) handleAuthorize(w http.ResponseWriter, r *http.Request) {
 	rq.Set("code", code)
 	rq.Set("state", state)
 	dest.RawQuery = rq.Encode()
-	// #nosec G710 -- this is a fake OIDC issuer used only in tests; redirecting to
-	// the supplied client redirect_uri is exactly what an authorize endpoint does.
+	// #nosec G710 -- dest derives from redirectURI, which the allowlist check
+	// above already constrained to a redirect_uri the client registered via
+	// AllowRedirectURI. gosec's taint analysis cannot see that map-membership
+	// barrier and reports an open redirect anyway; the destination is validated,
+	// so this is a false positive. (CodeQL, which does model the barrier, is
+	// satisfied without a suppression.)
 	http.Redirect(w, r, dest.String(), http.StatusFound)
 }
 

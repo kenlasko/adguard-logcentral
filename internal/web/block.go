@@ -51,7 +51,7 @@ func (s *Server) handleBlock(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), s.cfg.AdGuardTimeout)
 	defer cancel()
 	if err := client.SetDomainBlock(ctx, domain, block); err != nil {
-		s.logger.Error("set domain block failed", "instance", instance, "domain", domain, "block", block, "error", err)
+		s.logger.Error("set domain block failed", "instance", sanitizeLogValue(instance), "domain", sanitizeLogValue(domain), "block", block, "error", err)
 		http.Error(w, "failed to update rule", http.StatusBadGateway)
 		return
 	}
