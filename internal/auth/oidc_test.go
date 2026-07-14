@@ -29,6 +29,7 @@ func buildApp(t *testing.T, iss *oidctest.Issuer) *httptest.Server {
 	})
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
+	iss.AllowRedirectURI(srv.URL + "/auth/callback")
 
 	codec, err := NewCodec(strings.Repeat("s", 32), false)
 	if err != nil {
