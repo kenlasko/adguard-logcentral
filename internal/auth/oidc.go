@@ -246,9 +246,14 @@ func randomToken() string {
 }
 
 // safeReturnTo restricts the post-login redirect to local, absolute paths so an
-// attacker cannot craft an open redirect via the return parameter.
+// attacker cannot craft an open redirect via the return parameter. It rejects a
+// leading "//" or "/\" because browsers normalize both to a protocol-relative
+// URL (e.g. "/\evil.com" becomes "//evil.com"), which would escape this origin.
 func safeReturnTo(v string) string {
-	if v == "" || !strings.HasPrefix(v, "/") || strings.HasPrefix(v, "//") {
+	if v == "" || !strings.HasPrefix(v, "/") {
+		return "/"
+	}
+	if len(v) > 1 && (v[1] == '/' || v[1] == '\\') {
 		return "/"
 	}
 	return v

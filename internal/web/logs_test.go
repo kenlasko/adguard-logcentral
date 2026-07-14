@@ -239,6 +239,32 @@ func TestLogsFilterForwardedToInstances(t *testing.T) {
 	}
 }
 
+func TestValidStatusAllowlist(t *testing.T) {
+	cases := map[string]string{
+		"":                     "", // no filter
+		"blocked":              "blocked",
+		"rewritten":            "rewritten",
+		"processed":            "processed",
+		"blocked_safebrowsing": "blocked_safebrowsing",
+		"all":                  "all",
+		"bogus":                "", // unknown value dropped
+		"blocked; DROP":        "", // crafted input dropped
+		"PROCESSED":            "", // case-sensitive: not the canonical value
+	}
+	for in, want := range cases {
+		if got := validStatus(in); got != want {
+			t.Errorf("validStatus(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
+func TestParseFilterRejectsUnknownStatus(t *testing.T) {
+	req := httptest.NewRequest("GET", "/partials/logs?status=evil", nil)
+	if got := parseFilter(req).Status; got != "" {
+		t.Errorf("parseFilter Status = %q, want empty for unknown status", got)
+	}
+}
+
 func TestLogsDownedInstanceShowsWarningWithSurvivingRows(t *testing.T) {
 	c1, close1 := clientFor(t, "dns1", []adguardtest.Entry{fakeEntry("2026-07-10T00:00:04Z", "1.1.1.1", "a.com", false)})
 	defer close1()
