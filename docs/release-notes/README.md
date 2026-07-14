@@ -82,14 +82,14 @@ the release body in this order:
 
 Whichever source wins becomes the full body of the GitHub Release.
 
-## Continuous images vs releases
+## Images are built only on release
 
-The **Docker** workflow (`.github/workflows/docker.yml`) is separate: it builds
-on every push to `main` (moving `latest` plus a branch and short-SHA tag) and
-builds without pushing on PRs. It deliberately does not run on tags, so it never
-double-builds a release or races the signed release digest. Versioned,
-cosign-signed `v<version>` images come only from a manual CI run (the release
-path).
+Images are built and published solely by the release path -- a manual CI run.
+There is no continuous image build: pushes to `main` and pull requests run the
+check suite (lint, tests, `govulncheck`, `gosec`) but never build or publish an
+image. The only images that exist are the versioned, cosign-signed `v<version>`
+releases (which also move `latest`), so `latest` always points at a real
+release rather than the moving tip of `main`.
 
 ## Archived release notes
 

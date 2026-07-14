@@ -76,17 +76,17 @@ Multi-architecture images (`linux/amd64` and `linux/arm64`) are published to the
 GitHub Container Registry:
 
 ```
-ghcr.io/kenlasko/adguard-logcentral:latest      # newest release, and tip of main between releases
+ghcr.io/kenlasko/adguard-logcentral:latest      # newest release
 ghcr.io/kenlasko/adguard-logcentral:1.2.3       # a specific release
 ghcr.io/kenlasko/adguard-logcentral:1.2         # latest patch of the 1.2 line
-ghcr.io/kenlasko/adguard-logcentral:sha-abc1234 # exact commit on main
 ```
 
-Every push to `main` moves `latest` (plus a branch and short-SHA tag) so the tip
-of `main` is always pullable. Versioned `1.2.3` / `1.2` tags come from a formal
-release (see [Releasing](#releasing)). Each image ships with a signed SBOM and
-build provenance attestation, and is scanned with Trivy before publication;
-release images are additionally signed with cosign.
+Images are built and published only by a formal release (see
+[Releasing](#releasing)); a release moves `latest` and publishes the versioned
+`1.2.3` / `1.2` tags. Pushes to `main` run the check suite but do not build or
+publish an image. Each release image ships with a signed SBOM and build
+provenance attestation, is scanned with Trivy before publication, and is signed
+with cosign.
 
 The running version is reported at startup and on the unauthenticated
 `/healthz` endpoint:
@@ -244,11 +244,13 @@ GitHub Actions runs on every pull request and push to `main`:
   `verify` checks, `golangci-lint` (which bundles staticcheck, errcheck, revive,
   gocritic, and more), the full test suite under the race detector with a
   coverage report, `govulncheck` for known-vulnerable dependencies, and `gosec`
-  for static security analysis (results uploaded to GitHub code scanning).
+  for static security analysis (results uploaded to GitHub code scanning). A
+  manual run of this workflow is the release path: after the same checks pass it
+  builds, signs (cosign), scans (Trivy), and publishes the multi-arch image with
+  SBOM and provenance, then cuts the `v<version>` release. No other workflow
+  builds an image, so pushes to `main` never publish one.
 - **CodeQL** (`.github/workflows/codeql.yml`): GitHub's security-and-quality
   analysis for Go, also on a weekly schedule.
-- **Docker** (`.github/workflows/docker.yml`): builds and publishes the
-  multi-arch image described above, with SBOM, provenance, and a Trivy scan.
 
 Dependencies, GitHub Actions, and the Docker base image are kept current by
 Dependabot (`.github/dependabot.yml`).
